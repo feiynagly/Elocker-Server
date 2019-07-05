@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:context="http://www.springframework.org/schema/context" xmlns="http://www.springframework.org/schema/beans"
+    xmlns:tx="http://www.springframework.org/schema/tx" xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+       http://www.springframework.org/schema/mvc
+	   http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+	   http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- 静态资源映射 -->
+    <mvc:resources mapping="dist/**" location="/WEB-INF/dist/" cache-period="1"/>
+    <mvc:resources mapping="vendor/**" location="/WEB-INF/vendor/" cache-period="1"/>
+    <mvc:resources mapping="elocker/api/**" location="/WEB-INF/api/" cache-period="1"/>
+
+    <!-- 扫描类包，将标注Spring注解的类自动转化Bean，同时完成Bean的注入 -->
+    <context:component-scan base-package="controller,dao,reqhandler,util"/>
+
+    <!--Properties 配置文件加载-->
+    <context:property-placeholder
+            location="classpath:core.properties"
+            order="1" ignore-unresolvable="true"
+            ignore-resource-not-found="true"
+            file-encoding="UTF-8"
+    />
+
+    <mvc:annotation-driven/>
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <!-- 配置视图解析器，将ModelAndView及字符串解析为具体的页面 -->
+    <bean id="viewResolverCommon"
+          class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/pages/"/>
+        <property name="suffix" value=".jsp"/>
+        <property name="viewClass"
+                  value="org.springframework.web.servlet.view.JstlView"/>
+        <property name="order" value="2"/>
+    </bean>
+
+</beans>

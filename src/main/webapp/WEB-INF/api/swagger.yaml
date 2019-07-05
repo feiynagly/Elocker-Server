@@ -1,0 +1,508 @@
+swagger: "2.0"
+info:
+  description: "Elocker"
+  version: "1.0.0"
+  title: "Elocker API"
+host: "127.0.0.1:8080"
+basePath: "/"
+tags:
+  - name: "Locker"
+    description: "Operation about locker"
+  - name: "Authorization"
+    description: "Operation about authorization"
+  - name: "User"
+    description: "Operations about user"
+  - name: "Log"
+    description: "Operations about logs"
+  - name: "Login"
+    description: "Operations about login"
+schemes:
+  - "https"
+  - "http"
+paths:
+  /locker/get:
+    get:
+      tags:
+        - "Locker"
+      summary: "Get single or all locker"
+      description: "if param serial is omitted, then all lockers will return"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "appid"
+          in: "query"
+          description: "phone number of the current user"
+          required: true
+          type: "string"
+        - name: "sign"
+          in: "query"
+          description: "signature of the request"
+          required: true
+          type: "string"
+        - name: "serial"
+          in: "query"
+          description: "serial of the locker"
+          type: "string"
+      responses:
+        200:
+          description: "successful operation"
+        401:
+          description: "unauthorized request"
+        500:
+          description: "unknow error"
+  /locker/add:
+    post:
+      tags:
+        - "Locker"
+      summary: "Add a new locker to the database"
+      description: ""
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "post body data"
+          required: true
+          schema:
+            $ref: "#/definitions/Locker"
+      responses:
+        200:
+          description: "Operation successsful"
+        401:
+          description: "Unauthorized request"
+        500:
+          description: "unknow error"
+        603:
+          description: "invalid serial number"
+  /locker/update:
+    post:
+      tags:
+        - "Locker"
+      summary: "modify locker description"
+      description: ""
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "post body data"
+          required: true
+          schema:
+            $ref: "#/definitions/Locker"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        401:
+          description: "Unauthorized request"
+  /locker/transfer:
+    post:
+      tags:
+        - "Locker"
+      summary: "transfer locker"
+      description: ""
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: ""
+          required: true
+          schema:
+            type: "object"
+            properties:
+              appid:
+                type: "string"
+              sign:
+                type: "string"
+              serial:
+                type: "string"
+                description: "locker serial"
+              toAccount:
+                type: "string"
+                description: "phone number to authorize to"
+      responses:
+        200:
+          description: "Operation successsful"
+        401:
+          description: "Unauthorized request"
+        500:
+          description: "Unknow error"
+        605:
+          description: "Invalid to account"
+  /locker/delete:
+    post:
+      tags:
+        - "Locker"
+      summary: "delete lockers"
+      description: ""
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "locker serial array which to delete"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              appid:
+                type: "string"
+              sign:
+                type: "string"
+              lockerSerials:
+                type: "array"
+                items:
+                  type: "string"
+                  description: "locker serials array"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        401:
+          description: "Unauthorized request"
+  /authorization/get:
+    get:
+      tags:
+        - "Authorization"
+      summary: "Get authorization of current user"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "appid"
+          in: "query"
+          description: "phone number of the current user"
+          required: true
+          type: "string"
+        - name: "sign"
+          in: "query"
+          description: "signature of the request"
+          required: true
+          type: "string"
+        - name: "toAccount"
+          in: "query"
+          type: "string"
+          description: "the phone number which to authorise to"
+        - name: "serial"
+          in: "query"
+          type: "string"
+          description: "related serial of locker"
+      responses:
+        200:
+          description: "successful operation"
+        500:
+          description: "unknow error"
+        401:
+          description: "unauthorized request"
+  /authorization/add:
+    post:
+      tags:
+        - "Authorization"
+      summary: "Add a new authorization"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "Authorization entry"
+          required: true
+          schema:
+            $ref: "#/definitions/Authorization"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        401:
+          description: "Unauthorized request"
+  /authorization/update:
+    post:
+      tags:
+        - "Authorization"
+      summary: "modify a authorization"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "Authorization entry"
+          required: true
+          schema:
+            $ref: "#/definitions/AuthorizationUpdate"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        401:
+          description: "Unauthorized request"
+  /authorization/delete:
+    post:
+      tags:
+        - "Authorization"
+      summary: "delete authorization by ids"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "Authorization ids that to delete"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              appid:
+                type: "string"
+              sign:
+                type: "string"
+              ids:
+                type: "array"
+                items:
+                  type: "integer"
+                  format: "int64"
+            example:
+              appid: "15851841387"
+              sign: "43052bd7afce21cfa1b8929b560a2057"
+              ids:
+                - 10000
+                - 10001
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        401:
+          description: "Unauthorized request"
+  /log/get:
+    get:
+      tags:
+        - "Log"
+      summary: "Get single or all operation log"
+      description: "if param serial is omitted, then all log will return"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "appid"
+          in: "query"
+          description: "phone number of the current user"
+          required: true
+          type: "string"
+        - name: "sign"
+          in: "query"
+          description: "signature of the request"
+          required: true
+          type: "string"
+        - name: "serial"
+          in: "query"
+          description: "serial of the locker"
+          type: "string"
+        - name: "startTime"
+          in: "query"
+          description: "start time of the log"
+          type: "string"
+        - name: "endTime"
+          in: "query"
+          description: "end time of the log"
+          type: "string"
+      responses:
+        200:
+          description: "successful operation"
+        500:
+          description: "unknow error"
+        401:
+          description: "unauthorized request"
+  /log/add:
+    post:
+      tags:
+        - "Log"
+      summary: "Add a operation log"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "operation log to add"
+          required: true
+          schema:
+            $ref: "#/definitions/OperationLog"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        401:
+          description: "Unauthorized request"
+  /user/changePassword:
+    post:
+      tags:
+        - "User"
+      summary: "Change password"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "change password for user"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              appid:
+                type: "string"
+              sign:
+                type: "string"
+              oldpass:
+                type: "string"
+                description: "encryption password text"
+              newpass:
+                type: "string"
+                description: "encryption password text"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        601:
+          description: "Incorrect username or password"
+  /login/login:
+    post:
+      tags:
+        - "Login"
+      summary: "Login in"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "change password for user"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              phoneNum:
+                type: "string"
+              password:
+                type: "string"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        601:
+          description: "Incorrect username or password"
+        602:
+          description: "Retry too many times"
+definitions:
+  Locker:
+    type: "object"
+    properties:
+      appid:
+        type: "string"
+        description: "phone number of current user"
+      sign:
+        type: "string"
+        description: "signature of request"
+      serial:
+        type: "string"
+      description:
+        type: "string"
+    example:
+      appid: "15851841387"
+      sign: "54b4f929165b75ebb3f3834733c12f1a"
+      serial: "abcdef"
+      description: "My Locker"
+  Authorization:
+    type: "object"
+    properties:
+      appid:
+        type: "string"
+        description: "phone number of current user"
+      sign:
+        type: "string"
+        description: "signature of request"
+      serial:
+        type: "string"
+        description: "serial of the locker to authorize"
+      toAccount:
+        type: "string"
+        description: "phone number of acount to authorise to"
+      startTime:
+        type: "string"
+        description: "authorization start time string"
+      endTime:
+        type: "string"
+        description: "authorization end time string"
+      description:
+        type: "string"
+        description: "authorization name"
+    example:
+      appid: "15851841387"
+      sign: "54b4f929165b75ebb3f3834733c12f1a"
+      serial: "abcdef"
+      toAccount: "13167017116"
+      startTime: "2019-06-05 00:00:00"
+      endTime: "2019-06-06 00:00:00"
+      description: "First Authorization"
+  AuthorizationUpdate:
+    type: "object"
+    properties:
+      appid:
+        type: "string"
+        description: "phone number of current user"
+      sign:
+        type: "string"
+        description: "signature of request"
+      id:
+        type: "integer"
+        format: "int64"
+      startTime:
+        type: "string"
+      endTime:
+        type: "string"
+      description:
+        type: "string"
+    example:
+      appid: "15851841387"
+      sign: "6079dd110df75e04c490b362d3a58b8c"
+      id: 101010
+      startTime: "2019-06-05 00:00:00"
+      endTime: "2019-06-06 00:00:00"
+      description: "Modified Authorization"
+  OperationLog:
+    type: "object"
+    properties:
+      appid:
+        type: "string"
+        description: "phone number of current user"
+      sign:
+        type: "string"
+        description: "signature of request"
+      serial:
+        type: "string"
+        description: "locker serial"
+      operation:
+        type: "string"
+        enum: ["Open","Lock","Add_Locker","Delete_Locker",
+               "Modify_Authorization","Add_Authorization","Delete_Authorization","Login","Login_Out"]
+        description: "operation name"
+      sTime:
+        type: "string"
+        description: "the time when add the log"
+      description:
+        type: "string"

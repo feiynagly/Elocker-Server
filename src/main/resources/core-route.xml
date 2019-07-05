@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+      http://www.springframework.org/schema/util
+      http://www.springframework.org/schema/util/spring-util-4.1.xsd">
+
+    <!--URL路径中/{module}/{handler}  module和具体执行类对应关系-->
+    <util:map id="requestHandlerMap" map-class="java.util.HashMap">
+        <entry key="login" value="LoginRequestHandler"/>
+        <entry key="locker" value="LockerRequestHandler"/>
+        <entry key="authorization" value="AuthorizationRequestHandler"/>
+        <entry key="log" value="OperationLogRequestHandler"/>
+        <entry key="user" value="UserRequestHandler"/>
+    </util:map>
+
+    <!--URL路径中视图名/{viewname}和具体视图页面对应关系-->
+    <util:map id="viewMap" map-class="java.util.HashMap">
+        <entry key="loginview" value="login"/>
+        <entry key="mainview" value="main"/>
+        <entry key="lockerview" value="/hwmgmt/lockerlist"/>
+        <entry key="authorizationview" value="/hwmgmt/authorizationlist"/>
+        <entry key="logview" value="/sysmgmt/logmgmt"/>
+        <entry key="userview" value="/sysmgmt/usermgmt"/>
+        <entry key="default" value="login"/>
+    </util:map>
+
+    <!--不需要认证的视图{viewname}-->
+    <util:list id="unNeedAuthenticateView" list-class="java.util.ArrayList">
+        <value type="java.lang.String">loginview</value>
+    </util:list>
+
+    <!--不需要认证的/{module}/{handler}-->
+    <util:list id="unNeedAuthenticateHandler" list-class="java.util.ArrayList">
+        <value type="java.lang.String">login/login</value>
+        <value type="java.lang.String">login/logout</value>
+    </util:list>
+
+</beans>
