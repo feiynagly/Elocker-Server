@@ -16,7 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import static constant.Constant.DATE_FORMAT;
+import static constant.Constant.DATE_PATTERN;
 import static constant.Status.SUCCESS;
 import static constant.Status.UNKNOWN_ERROR;
 
@@ -40,13 +40,13 @@ public class OperationLogRequestHandler extends RequestHandler {
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(new Date());
             calendar.add(Calendar.MONTH, -1);
-            startTime = new SimpleDateFormat(DATE_FORMAT).format(calendar.getTime());
+            startTime = new SimpleDateFormat(DATE_PATTERN).format(calendar.getTime());
             logger.info("startTime is not set , now set default to " + startTime);
         }
 
         //如果结束时间为空，则设置为当前时间
         if (endTime == null || endTime.equals("")) {
-            endTime = new SimpleDateFormat(DATE_FORMAT).format(new Date());
+            endTime = new SimpleDateFormat(DATE_PATTERN).format(new Date());
             logger.info("endTime is not set , now set default to " + endTime);
         }
 

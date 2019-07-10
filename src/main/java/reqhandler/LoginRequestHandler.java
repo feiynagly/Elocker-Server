@@ -12,7 +12,7 @@ import util.RedisUtil;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static constant.Constant.DATE_FORMAT;
+import static constant.Constant.DATE_PATTERN;
 import static constant.Status.*;
 
 /*
@@ -68,7 +68,7 @@ public class LoginRequestHandler extends RequestHandler {
 
             /*更新登录信息*/
             String lastLoginIp = this.request.getRemoteAddr();
-            String lastLoginTime = new SimpleDateFormat(DATE_FORMAT).format(new Date());
+            String lastLoginTime = new SimpleDateFormat(DATE_PATTERN).format(new Date());
             User user = new User();
             user.setPhoneNum(phoneNum);
             user.setLastLoginIp(lastLoginIp);

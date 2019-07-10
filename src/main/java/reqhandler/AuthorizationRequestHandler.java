@@ -1,9 +1,14 @@
 package reqhandler;
 
+import constant.Operation;
 import dao.AuthorizationDao;
 import dao.ManuInfoDao;
+import dao.OperationLogDao;
+import dao.UserDao;
 import model.Authorization;
+import model.OperationLog;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,17 +28,24 @@ public class AuthorizationRequestHandler extends RequestHandler {
     @Autowired
     private ManuInfoDao manuInfoDao;
 
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
+    private OperationLogDao operationLogDao;
+
     public void get() {
-        this.responseData.put("error", "unknow error");
+        this.responseData.put("error", "Unknown error");
         this.responseData.put("status", UNKNOWN_ERROR);
 
-        String toAccout = this.urlParam.get("toAccount");
+        String toAccount = this.urlParam.get("toAccount");
         String serial = this.urlParam.get("serial");
 
-        List<Authorization> authorizationList = authorizationDao.getAuthorization(phoneNum, toAccout, serial);
-        this.responseData.put("authorizationlist", authorizationList);
+        List<Authorization> authorizationList = authorizationDao.getAuthorization(phoneNum, toAccount, serial);
+        this.responseData.put("authorizationList", authorizationList);
         if (authorizationList != null) {
             this.responseData.put("status", SUCCESS);
+            this.responseData.put("success", "get authorization list successfully");
             this.responseData.remove("error");
         }
     }
@@ -42,26 +54,25 @@ public class AuthorizationRequestHandler extends RequestHandler {
 
         String toAccount = this.postData.has("toAccount") ? this.postData.getString("toAccount") : null;
         String serial = this.postData.has("serial") ? this.postData.getString("serial") : null;
-        /*禁止给空用户授权*/
-        if (toAccount == null || toAccount.equals("")) {
-            this.responseData.put("error", "The account to authorise to can not be null");
-            this.responseData.put("status", AUTHORIZATION_TO_NULL_ACCOUNT);
+        /*授权账户必须存在*/
+        if (toAccount == null || toAccount.equals("") || !userDao.existUser(toAccount)) {
+            this.responseData.put("error", "The account to authorise to is valid");
+            this.responseData.put("status", INVALID_TO_ACCOUNT_VALUE);
             return;
         }
+
         /*授权的序列号必须存在*/
-        if (serial != null && !manuInfoDao.existSerial(serial)) {
+        if (serial == null || !manuInfoDao.existSerial(serial)) {
             this.responseData.put("error", "invalid serial number");
             this.responseData.put("status", INVALID_SERIAL_NUMBER);
             return;
         }
 
         /*禁止重复授权*/
-        if (serial != null && toAccount != null) {
-            if (authorizationDao.existAuthorization(serial, this.phoneNum, toAccount)) {
-                this.responseData.put("error", "Duplicate authorization");
-                this.responseData.put("status", DUPLICATE_AUTHORIZATION);
-                return;
-            }
+        if (authorizationDao.existAuthorization(serial, this.phoneNum, toAccount)) {
+            this.responseData.put("error", "Duplicate authorization");
+            this.responseData.put("status", DUPLICATE_AUTHORIZATION);
+            return;
         }
 
         Authorization authorization = new Authorization();
@@ -71,11 +82,22 @@ public class AuthorizationRequestHandler extends RequestHandler {
         authorization.setStartTime(this.postData.getString("startTime"));
         authorization.setEndTime(this.postData.getString("endTime"));
         authorization.setDescription(this.postData.getString("description"));
-
+        if (this.postData.containsKey("weekday"))
+            authorization.setWeekday(this.postData.getString("weekday"));
+        if (this.postData.containsKey("dailyStartTime"))
+            authorization.setDailyStartTime(this.postData.getString("dailyStartTime"));
+        if (this.postData.containsKey("dailyEndTime"))
+            authorization.setDailyEndTime(this.postData.getString("dailyEndTime"));
 
         if (authorizationDao.addAuthorization(authorization) == 1) {
             this.responseData.put("success", "Add new authorization successfully");
             this.responseData.put("status", SUCCESS);
+            OperationLog operationLog = new OperationLog();
+            operationLog.setSerial(serial);
+            operationLog.setPhoneNum(this.phoneNum);
+            operationLog.setOperation(Operation.Add_Authorization);
+            operationLog.setDescription("Add a new authorization");
+            operationLogDao.addOperationLog(operationLog);
         } else {
             this.responseData.put("error", "Add authorization failed");
             this.responseData.put("status", UNKNOWN_ERROR);
@@ -102,15 +124,28 @@ public class AuthorizationRequestHandler extends RequestHandler {
         JSONArray success = new JSONArray();
         JSONArray error = new JSONArray();
         for (int i = 0; i < ids.size(); i++) {
-            Long id = ids.getLong(i);
+            JSONObject item = ids.getJSONObject(i);
+            Long id = item.getLong("id");
+            String serial = item.getString("serial");
             int status = authorizationDao.delAuthorizationById(id);
-            if (status == 1)
+            if (status == 1) {
                 success.add(id);
+                OperationLog operationLog = new OperationLog();
+                operationLog.setDescription("Delete Authorization " + id);
+                operationLog.setPhoneNum(this.phoneNum);
+                operationLog.setOperation(Operation.Delete_Authorization);
+                operationLog.setSerial(serial);
+                operationLogDao.addOperationLog(operationLog);
+            }
             else
                 error.add(id);
         }
         this.responseData.put("success", success);
         this.responseData.put("error", error);
+    }
+
+    public void setUserDao(UserDao userDao) {
+        this.userDao = userDao;
     }
 
     public void setAuthorizationDao(AuthorizationDao authorizationDao) {
@@ -119,5 +154,9 @@ public class AuthorizationRequestHandler extends RequestHandler {
 
     public void setManuInfoDao(ManuInfoDao manuInfoDao) {
         this.manuInfoDao = manuInfoDao;
+    }
+
+    public void setOperationLogDao(OperationLogDao operationLogDao) {
+        this.operationLogDao = operationLogDao;
     }
 }

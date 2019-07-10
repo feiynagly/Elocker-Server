@@ -1,10 +1,7 @@
 package reqhandler;
 
 import constant.Operation;
-import dao.LockerDao;
-import dao.ManuInfoDao;
-import dao.OperationLogDao;
-import dao.UserDao;
+import dao.*;
 import model.Locker;
 import model.OperationLog;
 import net.sf.json.JSONArray;
@@ -16,7 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
-import static constant.Constant.DATE_FORMAT;
+import static constant.Constant.DATE_PATTERN;
 import static constant.Constant.TYPE_BLE_LOCKER;
 import static constant.Status.*;
 
@@ -33,6 +30,9 @@ public class LockerRequestHandler extends RequestHandler {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private AuthorizationDao authorizationDao;
 
     @Autowired
     private OperationLogDao operationLogDao;
@@ -55,7 +55,7 @@ public class LockerRequestHandler extends RequestHandler {
     public void add() {
         String serial = this.postData.getString("serial");
         String description = this.postData.getString("description");
-        String createTime = new SimpleDateFormat(DATE_FORMAT).format(new Date());
+        String createTime = new SimpleDateFormat(DATE_PATTERN).format(new Date());
 
         Locker locker = new Locker();
         locker.setSerial(serial);
@@ -153,9 +153,17 @@ public class LockerRequestHandler extends RequestHandler {
                 int status = lockerDao.delLocker(this.phoneNum, serial);
                 if (status == 1) {
                     success.add(serial);
+                    /*删除相关授权*/
+                    authorizationDao.delAllAuthorizationByOwner(serial, this.phoneNum);
+                    /*删除相关日志，并添加一条删除记录*/
                     operationLogDao.delOperationLogBySerial(serial);
-                }
-                else
+                    OperationLog operationLog = new OperationLog();
+                    operationLog.setSerial(serial);
+                    operationLog.setOperation(Operation.Delete_Locker);
+                    operationLog.setPhoneNum(this.phoneNum);
+                    operationLog.setDescription("Delete Locker " + serial);
+                    operationLogDao.addOperationLog(operationLog);
+                } else
                     error.add(serial);
             }
         }
@@ -172,7 +180,8 @@ public class LockerRequestHandler extends RequestHandler {
             if (status > 0) {
                 this.responseData.put("success", "transfer locker success");
                 this.responseData.put("status", SUCCESS);
-
+                /*删除相关授权*/
+                authorizationDao.delAllAuthorizationByOwner(serial, this.phoneNum);
                 /*记录日志*/
                 OperationLog operationLog = new OperationLog();
                 operationLog.setPhoneNum(toAccount);
@@ -206,5 +215,9 @@ public class LockerRequestHandler extends RequestHandler {
 
     public void setOperationLogDao(OperationLogDao operationLogDao) {
         this.operationLogDao = operationLogDao;
+    }
+
+    public void setAuthorizationDao(AuthorizationDao authorizationDao) {
+        this.authorizationDao = authorizationDao;
     }
 }

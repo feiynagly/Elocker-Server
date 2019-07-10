@@ -16,10 +16,8 @@ public class Status {
     public static final short DUPLICATE_SERIAL_NUMBER = 604;
     //授权给空账户
     public static final short INVALID_TO_ACCOUNT_VALUE = 605;
+    //用户名为空或者非法
     public static final short INVALID_PHONE_NUMBER = 606;
     public static final short DUPLICATE_AUTHORIZATION = 607;
-
-
-    public static final short AUTHORIZATION_TO_NULL_ACCOUNT = 610;
 
 }

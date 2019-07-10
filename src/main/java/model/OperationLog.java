@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import static constant.Constant.DATE_FORMAT;
+import static constant.Constant.DATE_PATTERN;
 
 public class OperationLog {
     private Long id;
@@ -18,7 +18,7 @@ public class OperationLog {
     private String description;
 
     public OperationLog() {
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_FORMAT);
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN);
         sdf.setTimeZone(TimeZone.getDefault());
         this.sTime = sdf.format(new Date());
     }
@@ -53,6 +53,10 @@ public class OperationLog {
 
     public void setOperation(Operation operation) {
         this.operation = operation;
+    }
+
+    public void setsTime(String sTime) {
+        this.sTime = sTime;
     }
 
     public String getsTime() {

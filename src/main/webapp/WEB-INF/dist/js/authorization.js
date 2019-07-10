@@ -189,11 +189,11 @@ function updateAuthorizationList () {
                 alert(data.error);
                 return;
             }
-          if (data.authorizationlist == '' || data.authorizationlist == null)
+            if (data.authorizationList == '' || data.authorizationList == null)
                 return;
             // 清空表格数据，重新加载
           $('#authorizationlist').dataTable().fnClearTable()
-          $('#authorizationlist').dataTable().fnAddData(packagingDatatableData(data.authorizationlist), true)
+            $('#authorizationlist').dataTable().fnAddData(packagingDatatableData(data.authorizationList), true)
 
             // 给新增的选框加上iCheck CSS
             $("input[name='checkList']").iCheck({

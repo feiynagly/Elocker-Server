@@ -15,10 +15,9 @@ import java.util.List;
 
 @Repository
 public class AuthorizationDao {
-    private final String GET_AUTHORIZATION_LIST = "select * from t_authorization where fromAccount = ? or toAccount = ?";
     private final String ADD_AUTHORIZATION = "insert into t_authorization(serial,fromAccount,toAccount," +
             "startTime,endTime,description,weekday,dailyStartTime,dailyEndTime) value(?,?,?,?,?,?,?,?,?)";
-    private final String DEL_AUTHORIZATION = "delete from t_authorization where id=?";
+
     private final String GET_AUTHORIZATION_ALL = "select a.id,a.serial,b.description as lockerDescription,a.fromAccount,a.toAccount,a.startTime," +
             "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization a,t_locker b " +
             " where a.serial = b.serial and (fromAccount = ? or toAccount = ?)";
@@ -35,6 +34,9 @@ public class AuthorizationDao {
             "endTime=?,description=? where id=?";
     private final String EXIST_AUTHORIZATION = "select count(*) from t_authorization where " +
             "serial = ? and fromAccount = ? and toAccount = ?";
+    private final String DEL_AUTHORIZATION_BY_ID = "delete from t_authorization where id=?";
+    private final String DEL_AUTHORIZATION_BY_OWNER = "delete from t_authorization where serial = ? and fromAccount = ?";
+
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -77,6 +79,7 @@ public class AuthorizationDao {
                         authorization.setWeekday(rs.getString("weekday"));
                         authorization.setDailyStartTime(rs.getString("dailyStartTime"));
                         authorization.setDailyEndTime(rs.getString("dailyEndTime"));
+                        authorization.setLockerDescription(rs.getString("lockerDescription"));
                         authorizationList.add(authorization);
                     }
                 });
@@ -93,7 +96,7 @@ public class AuthorizationDao {
     public int addAuthorization(Authorization authorization) {
         int status = -1;
         try {
-            status = jdbcTemplate.update(ADD_AUTHORIZATION, new Object[]{
+            status = jdbcTemplate.update(ADD_AUTHORIZATION, new String[]{
                     authorization.getSerial(),
                     authorization.getFromAccount(),
                     authorization.getToAccount(),
@@ -127,10 +130,21 @@ public class AuthorizationDao {
         return status;
     }
 
+    public boolean existAuthorization(String serial, String fromAccount, String toAccount) {
+        int count = 0;
+        try {
+            count = jdbcTemplate.queryForObject(EXIST_AUTHORIZATION, new String[]{
+                    serial, fromAccount, toAccount}, Integer.class);
+        } catch (Exception e) {
+            logger.error("Failed to count authorization ,SQL error, phoneNum: " + fromAccount);
+        }
+        return count > 0;
+    }
+
     public int delAuthorizationById(Long id) {
         int status = -1;
         try {
-            status = jdbcTemplate.update(DEL_AUTHORIZATION, new Object[]{id});
+            status = jdbcTemplate.update(DEL_AUTHORIZATION_BY_ID, new Long[]{id});
         } catch (Exception e) {
             //TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             logger.error("Failed to delete authorization ,SQL error, id: " + id);
@@ -138,15 +152,16 @@ public class AuthorizationDao {
         return status;
     }
 
-    public boolean existAuthorization(String serial, String fromAccount, String toAccount) {
-        int count = 0;
+    public int delAllAuthorizationByOwner(String serial, String fromAccount) {
+        int status = -1;
         try {
-            count = jdbcTemplate.queryForObject(EXIST_AUTHORIZATION, new Object[]{
-                    serial, fromAccount, toAccount}, Integer.class);
+            status = jdbcTemplate.update(DEL_AUTHORIZATION_BY_OWNER, new String[]{
+                    serial, fromAccount
+            });
         } catch (Exception e) {
-            logger.error("Failed to count authorization ,SQL error, phoneNum: " + fromAccount);
+            logger.error("Failed to delete authorization, serial : " + serial);
         }
-        return count > 0;
+        return status;
     }
 
     public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
