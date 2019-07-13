@@ -104,11 +104,12 @@ public class AuthorizationDao {
                     authorization.getEndTime(),
                     authorization.getDescription(),
                     authorization.getWeekday(),
-                    authorization.getDailyEndTime(),
+                    authorization.getDailyStartTime(),
                     authorization.getDailyEndTime()
             });
         } catch (Exception e) {
             //TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            e.printStackTrace();
             logger.error("Failed to add authorization item to database, SQL error");
         }
         return status;

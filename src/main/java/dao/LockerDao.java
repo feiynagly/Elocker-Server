@@ -21,13 +21,10 @@ public class LockerDao {
     private final String ADD_LOCKER = "insert into t_locker(serial,phoneNum,description," +
             "createTime,lastOpenTime,hwType) values(?,?,?,?,?,?)";
     private final String DEL_LOCKER = "delete from t_locker where phoneNum=? and serial=?";
-    private final String DEL_AUTHORIZATION = "delete from t_authorization where " +
-            "fromAccount = ? and serial = ?";
     private final String MODIFY_LOCKER_DESCRIPTION = "update t_locker set description=? where " +
             "phoneNum=? and serial=?";
     private final String UPDATE_LOCKER_LAST_OPEN_TIME = "update t_locker set lastOpenTime = ? , toggleTimes = " +
             " toggleTimes + 1 where phoneNum=? and serial=?";
-    private final String DELETE_LOG_BY_SERIAL = "delete from t_log where serial = ?";
     private final static String TRANSFER_LOCKER = "update t_locker set phoneNum = ? where phoneNum = ? and serial = ?";
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -144,10 +141,6 @@ public class LockerDao {
         if (phoneNum != null && serial != null) {
             try {
                 status = jdbcTemplate.update(DEL_LOCKER, new String[]{phoneNum, serial});
-                /*删除关联授权*/
-                status = status * jdbcTemplate.update(DEL_AUTHORIZATION, new Object[]{phoneNum, serial});
-                /*删除关联日志*/
-                status = status * jdbcTemplate.update(DELETE_LOG_BY_SERIAL, new String[]{serial});
             } catch (Exception e) {
                 logger.error("Delete locker failed from database, phoneNum: " + phoneNum + " ,serial: " + serial);
                 //TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
