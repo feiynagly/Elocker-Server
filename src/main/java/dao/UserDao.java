@@ -17,7 +17,7 @@ public class UserDao {
     private final String GET_USER_BY_PHONE_SQL = "select * from t_user where phoneNum=?";
     private final String GET_PASSWORD_SQL = "select password from t_user where phoneNum=?";
     private final String DEL_USER_BY_PHONE_SQL = "delete from t_user where phoneNum=?";
-    private final String ADD_USER_SQL = "insert into t_user (phoneNum,userName,password,creatTime," +
+    private final String ADD_USER_SQL = "insert into t_user (phoneNum,userName,password,createTime," +
             "lastLoginTime,lastLoginIp,privilegeLevel,email) values (?,?,?,?,?,?,?,?)";
     private final String UPDATE_PASSWORD_SQL = "update t_user set password = ? where phoneNum = ?";
     private final String UPDATE_LOGININFO_SQL = "update t_user set lastLoginIp = ? , lastLoginTime = ? "
@@ -38,8 +38,9 @@ public class UserDao {
 
                 @Override
                 public void processRow(ResultSet rs) throws SQLException {
+                    user.setPhoneNum(rs.getString("phoneNum"));
                     user.setUserName(rs.getString("userName"));
-                    user.setCreatTime(rs.getString("createTime"));
+                    user.setCreateTime(rs.getString("createTime"));
                     user.setLastLoginTime(rs.getString("lastLoginTime"));
                     user.setLastLoginIp(rs.getString("lastLoginIp"));
                     user.setLastLoginTime(rs.getString("lastLoginTime"));
@@ -62,7 +63,7 @@ public class UserDao {
         String password = null;
         if (phoneNum != null) {
             try {
-                password = jdbcTemplate.queryForObject(GET_PASSWORD_SQL, new Object[]{phoneNum}, String.class);
+                password = jdbcTemplate.queryForObject(GET_PASSWORD_SQL, new String[]{phoneNum}, String.class);
             } catch (Exception e) {
                 logger.error("failed to get password of " + phoneNum + " from database,SQL query error");
             }
@@ -97,7 +98,7 @@ public class UserDao {
                     user.getPhoneNum(),
                     user.getUserName(),
                     user.getPassword(),
-                    user.getCreatTime(),
+                    user.getCreateTime(),
                     user.getLastLoginTime(),
                     user.getLastLoginIp(),
                     user.getPrivilegeLevel(),

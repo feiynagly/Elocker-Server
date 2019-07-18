@@ -5,7 +5,7 @@ public class User {
     private String userName;
     private String password;
     private String phoneNum;
-    private String creatTime;
+    private String createTime;
     /*YYYY-MM-DD hh:mm:ss*/
     private String lastLoginTime;
     private String lastLoginIp;
@@ -60,12 +60,12 @@ public class User {
         this.email = email;
     }
 
-    public String getCreatTime() {
-        return creatTime;
+    public String getCreateTime() {
+        return createTime;
     }
 
-    public void setCreatTime(String creatTime) {
-        this.creatTime = creatTime;
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 
     public String getLastLoginTime() {

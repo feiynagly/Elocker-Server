@@ -299,11 +299,12 @@ public class MainController {
         } catch (IllegalAccessException e) {
             logger.error("Failed to call method " + handler);
             responseData.put("error", "Internal error");
-            e.printStackTrace();
         } catch (InvocationTargetException e) {
             logger.error("Failed to call method " + handler + " ,No method " + handler + " in class " + handlerClassName + " or parameters are wrong");
             responseData.put("error", "Internal error");
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("Unknown error, module: " + module + " ,method: " + handler);
+            responseData.put("error", "Internal error");
         }
 
         /*设置状态码*/

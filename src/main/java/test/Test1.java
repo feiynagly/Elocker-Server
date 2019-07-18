@@ -1,17 +1,34 @@
 package test;
 
-import redis.clients.jedis.Jedis;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Test1 {
     public static void main(String args[]) {
-        Jedis jedis = new Jedis("10.0.10.100", 6379);
-        jedis.auth("feiyang");
-        String key = "15851841387" + "c";
-        jedis.set("15851841387" + "c", String.valueOf(10), "NX", "EX", 30);
-        System.out.println("remain time: " + jedis.get("15851841387" + "c"));
-        jedis.decr("15851841387" + "c");
-        System.out.println("ttl: " + jedis.ttl("15851841387" + "c"));
-        jedis.close();
+        List<Integer> numbers = new ArrayList<Integer>();
+        for (int i = 0; i < 10; i++) {
+            numbers.add(i);
+        }
 
+        OpList opList = new OpList(numbers);
+        opList.add();
+        for (int i : numbers) {
+            System.out.println("number : " + i);
+        }
+
+    }
+
+    private static class OpList {
+        private List<Integer> numbers;
+
+        public OpList(List<Integer> numbers) {
+            this.numbers = numbers;
+        }
+
+        public void add() {
+            for (int i = 100; i < 110; i++) {
+                numbers.add(i);
+            }
+        }
     }
 }

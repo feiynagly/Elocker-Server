@@ -37,7 +37,8 @@ public class LockerRequestHandler extends RequestHandler {
     @Autowired
     private OperationLogDao operationLogDao;
 
-    /*如果serial 为null或者""，获取该用户下的所有locker，否则获取指定的locker*/
+    /*如果serial 为null或者""，获取该用户下的所有locker(以及授权给用户的锁)
+     *，否则获取指定的locker*/
     public void get() {
         String serial = this.urlParam.get("serial");
         List<Locker> lockerList = lockerDao.getLockerListByPhoneNum(this.phoneNum, serial);

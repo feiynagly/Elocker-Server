@@ -19,11 +19,11 @@ import java.util.List;
 public class OperationLogDao {
 
     private final static String GET_LOGS_BY_SERIAL = "select a.id,a.serial,b.description as lockerDescription, " +
-            "a.phoneNum,a.operation,a.sTime,a.description from t_log a, " +
-            "t_locker b where a.serial=? and b.serial=? and a.phoneNum=? and (a.sTime between ? and ?)";
+            "a.phoneNum,a.operation,a.sTime,a.description from t_log as a inner join t_locker as b " +
+            "on a.serial=b.serial=? where a.serial = ? and a.phoneNum=? and (a.sTime between ? and ?)";
     private final static String GET_LOGS_ALL = "select a.id,a.serial,b.description as lockerDescription, " +
-            "a.phoneNum,a.operation,a.sTime,a.description from t_log a, " +
-            "t_locker b where a.serial=b.serial and a.phoneNum=? and (sTime between ? and ?)";
+            "a.phoneNum,a.operation,a.sTime,a.description from t_log as a inner join t_locker as b " +
+            " on a.serial=b.serial where a.phoneNum=? and (sTime between ? and ?)";
     private final static String ADD_OPERATION_LOG = "insert into t_log(serial,phoneNum,operation,sTime,description) " +
             " values (?,?,?,?,?)";
 
@@ -39,7 +39,7 @@ public class OperationLogDao {
     public List<OperationLogViewData> getLogsBySerial(String phoneNum, String serial, String startTime, String endTime) {
         List<OperationLogViewData> operationLogs = new ArrayList<OperationLogViewData>();
         try {
-            jdbcTemplate.query(GET_LOGS_BY_SERIAL, new Object[]{serial, serial, phoneNum, startTime, endTime},
+            jdbcTemplate.query(GET_LOGS_BY_SERIAL, new Object[]{serial, phoneNum, startTime, endTime},
                     new RowCallbackHandler() {
                         @Override
                         public void processRow(ResultSet rs) throws SQLException {

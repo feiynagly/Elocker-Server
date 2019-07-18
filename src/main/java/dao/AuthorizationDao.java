@@ -17,19 +17,18 @@ import java.util.List;
 public class AuthorizationDao {
     private final String ADD_AUTHORIZATION = "insert into t_authorization(serial,fromAccount,toAccount," +
             "startTime,endTime,description,weekday,dailyStartTime,dailyEndTime) value(?,?,?,?,?,?,?,?,?)";
-
     private final String GET_AUTHORIZATION_ALL = "select a.id,a.serial,b.description as lockerDescription,a.fromAccount,a.toAccount,a.startTime," +
-            "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization a,t_locker b " +
-            " where a.serial = b.serial and (fromAccount = ? or toAccount = ?)";
+            "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization as a inner join t_locker as b on a.serial = b.serial" +
+            " where fromAccount = ? or toAccount = ?";
     private final String GET_AUTHORIZATION_BY_TOACCOUNT = "select a.id,a.serial,b.description as lockerDescription,a.fromAccount,a.toAccount,a.startTime," +
-            "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization a,t_locker b " +
-            " where a.serial = b.serial and fromAccount = ? and toAccount = ?";
+            "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization as a inner join t_locker as b " +
+            " on a.serial = b.serial where fromAccount = ? and toAccount = ?";
     private final String GET_AUTHORIZATION_BY_TOACCOUNT_AND_SERIAL = "select a.id,a.serial,b.description as lockerDescription,a.fromAccount,a.toAccount,a.startTime," +
-            "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization a,t_locker b " +
-            " where a.serial = ? and b.serial = ? and fromAccount = ? and toAccount = ?";
+            "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization as a inner join t_locker as b " +
+            " on a.serial = b.serial where a.serial = ? and fromAccount = ? and toAccount = ?";
     private final String GET_AUTHORIZATION_BY_SERIAL = "select a.id,a.serial,b.description as lockerDescription,a.fromAccount,a.toAccount,a.startTime," +
-            "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization a,t_locker b " +
-            " where a.serial = ? and b.serial = ? and fromAccount = ?";
+            "a.endTime,a.description ,a.weekday,a.dailyStartTime,a.dailyEndTime from t_authorization as a inner join t_locker as b " +
+            " on a.serial = b.serial where a.serial = ? and fromAccount = ?";
     private final String UPDATE_AUTHORIZATION = "update t_authorization set startTime=? ," +
             "endTime=?,description=? where id=?";
     private final String EXIST_AUTHORIZATION = "select count(*) from t_authorization where " +
@@ -47,14 +46,14 @@ public class AuthorizationDao {
         Object[] params = null;
         if (fromAccount != null && toAccount != null && serial != null) {
             sql = GET_AUTHORIZATION_BY_TOACCOUNT_AND_SERIAL;
-            params = new Object[]{serial, serial, fromAccount, toAccount};
+            params = new Object[]{serial, fromAccount, toAccount};
         } else if (fromAccount != null && toAccount != null) {
             sql = GET_AUTHORIZATION_BY_TOACCOUNT;
             params = new Object[]{fromAccount, toAccount};
         } else if (fromAccount != null && serial != null) {
             /*获取当前所有授权*/
             sql = GET_AUTHORIZATION_BY_SERIAL;
-            params = new Object[]{serial, serial, fromAccount};
+            params = new Object[]{serial, fromAccount};
         } else if (fromAccount != null) {
             /*获取当前所有授权*/
             sql = GET_AUTHORIZATION_ALL;

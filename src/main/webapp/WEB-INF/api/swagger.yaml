@@ -356,6 +356,31 @@ paths:
           description: "unknow error"
         401:
           description: "Unauthorized request"
+  /user/get:
+    get:
+      tags:
+        - "User"
+      summary: "get infomation about current login user"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "appid"
+          in: "query"
+          description: "phone number of the current user"
+          required: true
+          type: "string"
+        - name: "sign"
+          in: "query"
+          description: "signature of the request"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        401:
+          description: "Unauthorized request"
   /user/changePassword:
     post:
       tags:

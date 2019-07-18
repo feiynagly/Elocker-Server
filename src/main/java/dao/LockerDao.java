@@ -15,8 +15,6 @@ import java.util.List;
 @Repository
 public class LockerDao {
     private static Logger logger = Logger.getLogger(LockerDao.class);
-    private final String GET_ALL_LOCKER_LIST = "select * from t_locker where phoneNum = ?";
-    private final String GET_LOCKER_LIST_BY_SERIAL = "select * from t_locker where phoneNum = ? and serial = ?";
     private final String COUNT_LOCKER_BY_SERIAL = "count(*) from t_locker where serial=?";
     private final String ADD_LOCKER = "insert into t_locker(serial,phoneNum,description," +
             "createTime,lastOpenTime,hwType) values(?,?,?,?,?,?)";
@@ -36,36 +34,56 @@ public class LockerDao {
      */
     public List<Locker> getLockerListByPhoneNum(String phoneNum, String serial) {
         final List<Locker> lockerList = new ArrayList<Locker>();
-        String sql;
+        /*账户下拥有的锁*/
+        String sql1;
+        /*授权的锁*/
+        String sql2;
         String[] params;
         if (serial == null || serial.equals("")) {
-            sql = GET_ALL_LOCKER_LIST;
+            sql1 = "select * from t_locker where phoneNum = ?";
             params = new String[]{phoneNum};
+            sql2 = "select A.serial,A.phoneNum,A.description,A.createTime,A.lastOpenTime,"
+                    + "A.hwType,A.toggleTimes from t_locker as A INNER JOIN  " +
+                    "t_authorization as B on A.serial = B.serial  where B.toAccount = ?";
         } else {
-            sql = GET_LOCKER_LIST_BY_SERIAL;
+            sql1 = "select * from t_locker where phoneNum = ? and serial = ?";
             params = new String[]{phoneNum, serial};
+            sql2 = "select A.serial,A.phoneNum,A.description,A.createTime,A.lastOpenTime,"
+                    + "A.hwType,A.toggleTimes from t_locker as A INNER JOIN  " +
+                    "t_authorization as B on A.serial = B.serial  where B.toAccount = ?" +
+                    " and B.serial = ?";
         }
         try {
-            jdbcTemplate.query(sql, params, new RowCallbackHandler() {
-                @Override
-                public void processRow(ResultSet rs) throws SQLException {
-                    Locker locker = new Locker();
-                    locker.setSerial(rs.getString("serial"));
-                    locker.setPhoneNum(phoneNum);
-                    locker.setDescription(rs.getString("description"));
-                    locker.setCreateTime(rs.getString("createTime"));
-                    locker.setLastOpenTime(rs.getString("lastOpenTime"));
-                    locker.setHwType(rs.getString("hwType"));
-                    locker.setToggleTimes(rs.getInt("toggleTimes"));
-                    lockerList.add(locker);
-                }
-            });
+            jdbcTemplate.query(sql1, params, new LockerRowHandler(lockerList));
+            jdbcTemplate.query(sql2, params, new LockerRowHandler(lockerList));
         } catch (Exception e) {
             logger.error("Failed to get all locker list for " + phoneNum + " from Database ,SQL query error");
             return null;
         }
 
         return lockerList;
+    }
+
+    private class LockerRowHandler implements RowCallbackHandler {
+
+        private List<Locker> lockers;
+
+        public LockerRowHandler(List<Locker> lockers) {
+            this.lockers = lockers;
+        }
+
+        @Override
+        public void processRow(ResultSet rs) throws SQLException {
+            Locker locker = new Locker();
+            locker.setSerial(rs.getString("serial"));
+            locker.setPhoneNum(rs.getString("phoneNum"));
+            locker.setDescription(rs.getString("description"));
+            locker.setCreateTime(rs.getString("createTime"));
+            locker.setLastOpenTime(rs.getString("lastOpenTime"));
+            locker.setHwType(rs.getString("hwType"));
+            locker.setToggleTimes(rs.getInt("toggleTimes"));
+            this.lockers.add(locker);
+        }
     }
 
     public boolean existSerial(String serial) {

@@ -12,6 +12,7 @@ public enum Operation {
     Add_Authorization("Add_Authorization"),
     Login("Login"),
     Login_Out("Login_Out"),
+    Change_Password("Change_Password"),
     Unknown("Unknow");
 
     private String description;
