@@ -137,7 +137,7 @@ public class LockerDao {
      * @param locker 设置serial,phoneNum,lastOpenTime即可
      * @return int 更新成功返回 1，否则返回-1
      */
-    public int updateLastLoginTime(Locker locker) {
+    public int updateLastOpenTime(Locker locker) {
         int status = -1;
         try {
             status = jdbcTemplate.update(UPDATE_LOCKER_LAST_OPEN_TIME, new Object[]{

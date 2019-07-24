@@ -93,7 +93,7 @@ public class OperationLogRequestHandler extends RequestHandler {
                 locker.setPhoneNum(operationLog.getPhoneNum());
                 locker.setSerial(operationLog.getSerial());
                 locker.setLastOpenTime(operationLog.getsTime());
-                lockerDao.updateLastLoginTime(locker);
+                lockerDao.updateLastOpenTime(locker);
             }
 
             /*提交到数据库*/

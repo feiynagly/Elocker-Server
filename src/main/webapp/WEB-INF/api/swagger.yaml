@@ -73,9 +73,11 @@ paths:
         401:
           description: "Unauthorized request"
         500:
-          description: "unknow error"
+          description: "unknown error"
         603:
           description: "invalid serial number"
+        604:
+          description: "duplicate serial number"
   /locker/update:
     post:
       tags:
