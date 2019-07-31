@@ -1,5 +1,10 @@
 package model;
 
+import constant.Constant;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class User {
 
     private String userName;
@@ -12,12 +17,20 @@ public class User {
     private short privilegeLevel;
     private String email;
 
+    public User() {
+        this.createTime = new SimpleDateFormat(Constant.DATE_PATTERN).format(new Date());
+        this.lastLoginTime = createTime;
+        this.privilegeLevel = 0;
+    }
+
     public String getUserName() {
         return userName;
     }
 
     public void setUserName(String userName) {
-        this.userName = userName;
+        if (userName != null && !userName.equals("")) {
+            this.userName = userName;
+        }
     }
 
     public String getPassword() {
@@ -34,6 +47,8 @@ public class User {
 
     public void setPhoneNum(String phoneNum) {
         this.phoneNum = phoneNum;
+        if (this.userName == null)
+            this.userName = phoneNum;
     }
 
     public String getLastLoginIp() {

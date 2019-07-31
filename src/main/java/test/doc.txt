@@ -9,10 +9,16 @@
    用来缓存已经认证过的api 数字签名，如果在超时时间之前有后续api请求，则直接从redis数据库中读取缓存进行认证即可；
    如果后续api请求超过了超时时间，则需要从mysql数据库中读取相关信息生成签名，与api携带的签名进行比对。
 
-④ {phoneNum+"c",maxCount}
-   用来记录在规定的时间内，api访问的次数。api请求每请求一次，maxCount减少1，当maxCount小于0时，
-   api请求失败。直至定时器超时，maxCount重新设置。
+④ {ip+port+"r",max_request_count}
+   用来记录在规定的时间内，request请求次数。每请求一次，maxCount减少1，
+   当maxCount小于0时请求失败。直至定时器超时，maxCount重新设置。
 
+⑤ { ip+port+"c", max_send_msg_request_count}
+   用来记录在规定时间内，获取验证码code的次数.每获取一次验证码，maxCount减少1，当maxCount小于0时，禁止继续获取验证码。
+   定时器超时后maxCount会重置。
+
+⑥ {phoneNum+"code",code}
+    记录验证码
 
 2、API 数字签名说明
    1、对于GET请求

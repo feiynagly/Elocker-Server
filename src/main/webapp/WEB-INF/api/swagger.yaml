@@ -383,6 +383,33 @@ paths:
           description: "unknow error"
         401:
           description: "Unauthorized request"
+  /user/fetchCodeForRegister:
+    post:
+      tags:
+        - "User"
+      summary: "get verification code for user register"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              appid:
+                type: "string"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "Unknow error"
+        606:
+          description: "Phone number can not be empty"
+        610:
+          description: "Send message failed"
+        611:
+          description: "Short message gateway is unreachable"
   /user/changePassword:
     post:
       tags:

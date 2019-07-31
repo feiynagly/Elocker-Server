@@ -8,5 +8,7 @@ public class Test3 {
         String enc = DigestUtils.md5Hex("15851841387" + DigestUtils.md5Hex("12345"));
         String result = DigestUtils.md5Hex(data + enc);
         System.out.println(result);
+        String enc1 = DigestUtils.md5Hex("15150981234" + DigestUtils.md5Hex("12345"));
+        System.out.println(enc1);
     }
 }

@@ -34,12 +34,27 @@ public class MainController {
 
     private static Logger logger = Logger.getLogger(MainController.class);
 
+    /*http 页面超时时间*/
     @Value("${core.http.max_idle_time}")
     private int maxHttpIdle;
 
+    /*签名超时时间*/
     @Value("${core.api.sign_timeout}")
     private int signTimeout;
 
+    /*验证码超时时间*/
+    @Value("${core.api.verification_code_timeout}")
+    private int verificationCodeTimeout;
+
+    /*验证码超时时间前，最大发送验证码次数*/
+    @Value("${core.api.max_send_msg_request_count}")
+    private int maxSendMsgRequestCount;
+
+    /*请求计数器超时时间*/
+    @Value("${core.api.request_count_timeout}")
+    private int requestCountTimeout;
+
+    /*在请求计数器超时前最大请求次数*/
     @Value("${core.api.max_request_count}")
     private int maxRequestCount;
 
@@ -67,6 +82,8 @@ public class MainController {
     private String token;
 
     private String phoneNum;
+
+    private String requestSign;
 
     /*处理Cookie*/
     private HashMap<String, String> handleCookies(HttpServletRequest request, HttpServletResponse response) {
@@ -105,71 +122,106 @@ public class MainController {
         return urlParam;
     }
 
-    /*认证成功返回SUCCESS，
-     *认证失败返回UNAUTHORISED_REQUEST，
-     *请求过于频繁返回REQUEST_TOO_FREQUENTLY
-     * 内部错误返回 UNKNOWN_ERROR
-     */
-    private short handleAuthentication(HashMap<String, String> urlParam,
-                                       JSONObject postData, HttpServletRequest request) {
+    private short handleApiAuthentication(HashMap<String, String> urlParam,
+                                          JSONObject postData, HttpServletRequest request) {
         Jedis jedis = redisUtil.getJedis();
         if (jedis == null) {
+            logger.error("Failed get redis instance from pool");
             return UNKNOWN_ERROR;
         }
-        short result = UNAUTHORISED_REQUEST;
-        /*对于包含Cookie的请求（WEB页面请求），直接验证token是否正确即可*/
+
+        /*如果Cookie中存在token，直接根据缓存验证token是否正确即可*/
         if (this.token != null && jedis.exists(this.token)) {
-            result = SUCCESS;
             this.phoneNum = jedis.get(token);
             /*认证通过更新token超时时间*/
             jedis.expire(this.token, maxHttpIdle);
-        } else {
-            /*对于不包含cookie的GET请求（API请求）,通过数字签名认证。把整个URL请求路径后的部分和用户名、
-             *密码进行hash作为签名
-             * 例如 https://api.elocker.com.cn/locker/get?appid=phoneNum,sign=abcdef
-             * sign=md5(locker/get+md5(phoneNum+md5(password))*/
-            String url = request.getRequestURI();
-            String requestSign = "";
-            String password = "";
-            if (request.getMethod().equals("GET")) {
-                this.phoneNum = urlParam.get("appid");
-                requestSign = urlParam.get("sign");
-            }
-            /*对于不包含cookie的POST请求（API请求）,通过数字签名认证。把整个URL和用户名、密码进行hash作为签名
-             * 例如 https://api.elocker.com.cn/locker/get
-             * postData中必须至少包含appid,sign
-             * sign=md5(locker/get+md5(phoneNum+md5(password))*/
-            else if (request.getMethod().equals("POST")) {
-                this.phoneNum = postData.has("appid") ? postData.getString("appid") : null;
-                requestSign = postData.has("sign") ? postData.getString("sign") : null;
-            }
+            redisUtil.returnResource(jedis);
+            return SUCCESS;
+        }
 
-            if (this.phoneNum != null && requestSign != null) {
-                /*如果单位时间内访问次数过多，直接返回错误*/
-                jedis.set(this.phoneNum + "c", String.valueOf(maxRequestCount), "NX", "EX", signTimeout);
-                if (Integer.parseInt(jedis.get(this.phoneNum + "c")) <= 0) {
-                    logger.warn(this.phoneNum + " request too frequently");
-                    redisUtil.returnResource(jedis);
-                    return REQUEST_TOO_FREQUENTLY;
-                }
-                /*首先查找redis缓存是否有对应的签名sign，如果存在则直接返回认证通过*/
-                if (jedis.exists(requestSign)) {
-                    result = SUCCESS;
-                } else {
-                    password = userDao.getPassword(this.phoneNum);
-                    String sign = DigestUtils.md5Hex(url + password);
-                    if (sign.equalsIgnoreCase(requestSign)) {
-                        result = SUCCESS;
-                        jedis.set(sign, this.phoneNum, "NX", "EX", signTimeout);
-                    }
-                }
-                jedis.decr(this.phoneNum + "c");
+        /*如果cookie中没有token,则通过数字签名认证*/
+
+        /*对于get 请求，携带的appid和sign存在于URL路径参数中*/
+        if (request.getMethod().equals("GET")) {
+            this.phoneNum = urlParam.get("appid").trim();
+            this.requestSign = urlParam.get("sign").trim();
+        } else if (request.getMethod().equals("POST")) {
+            /*对于post请求，携带的appid和sign存在于body中*/
+            this.phoneNum = postData.has("appid") ? postData.getString("appid").trim() : null;
+            this.requestSign = postData.has("sign") ? postData.getString("sign").trim() : null;
+        }
+
+        if (this.phoneNum == null || this.phoneNum.equals("")) {
+            logger.error("phoneNum can not be null");
+            return INVALID_PHONE_NUMBER;
+        }
+
+        if (this.requestSign == null || this.requestSign.equals("")) {
+            logger.error("sign can not be null");
+            return INVALID_SIGN;
+        }
+
+        /*首先查找redis缓存是否有对应的签名sign，如果存在则直接返回认证通过*/
+        if (jedis.exists(requestSign)) {
+            redisUtil.returnResource(jedis);
+            return SUCCESS;
+        } else {
+            /*根据URL和用户名、密码计算数字签名，和请求携带的签名比较
+             * 计算方法：把URL请求除去域名（IP地址）后的路径部分和用户名、密码进行hash
+             * 例如 https://api.elocker.com.cn/locker/get
+             * 签名 sign=md5(locker/get+md5(phoneNum+md5(password))
+             * */
+            String password = userDao.getPassword(this.phoneNum);
+            String url = request.getRequestURI();
+            String sign = DigestUtils.md5Hex(url + password);
+            if (sign.equals(requestSign)) {
+                jedis.set(sign, this.phoneNum, "NX", "EX", signTimeout);
+                redisUtil.returnResource(jedis);
+                return SUCCESS;
             }
         }
         redisUtil.returnResource(jedis);
-        if (this.phoneNum == null)
-            result = INVALID_PHONE_NUMBER;
-        return result;
+        logger.error("unauthorized request" + "appid :" + this.phoneNum
+                + " , sign : " + this.requestSign + " ,src :" + request.getRemoteAddr()
+                + " ,src_port : " + request.getRemotePort());
+        return UNAUTHORISED_REQUEST;
+    }
+
+    /*
+     * 对于页面请求和不需要认证的请求（例如登录和验证码），校验是否在规定时间内多次发送，
+     * 校验规则：统计单位时间请求次数(相同的源地址+端口号为同一请求)
+     * @param request
+     * @param uri 对于POST请求，uri=module/handler ，对于get请求,uri=viewname
+     * @return boolean
+     */
+    private boolean isRequestFrequencyValid(HttpServletRequest request, String uri) {
+        boolean isValid = true;
+        String ip_add = request.getRemoteAddr();
+        int port = request.getRemotePort();
+
+        Jedis redis = redisUtil.getJedis();
+        String key;
+        /*设置验证码指定时间内获取次数*/
+        if (uri.toLowerCase().contains("code")) {
+            key = ip_add + port + "c";
+            redis.set(key, String.valueOf(maxSendMsgRequestCount),
+                    "NX", "EX", verificationCodeTimeout);
+
+        } else {
+            /*设置其它非验证码请求单位时间内最大请求次数*/
+            key = ip_add + port + "r";
+            redis.set(key, String.valueOf(maxRequestCount),
+                    "NX", "EX", requestCountTimeout);
+        }
+        redis.decr(key);
+        if (Integer.parseInt(redis.get(key)) <= 0) {
+            logger.error("request too frequently !" + " host: " + request.getRemoteAddr()
+                    + " ,port: " + request.getRemotePort() + " ,url: " + request.getRequestURL()
+                    + "method: " + request.getMethod() + "queryString: " + request.getQueryString());
+            isValid = false;
+        }
+        redisUtil.returnResource(redis);
+        return isValid;
     }
 
     /*处理页面请求*/
@@ -185,7 +237,13 @@ public class MainController {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        HashMap<String, String> cookieData = handleCookies(request, response);
+        handleCookies(request, response);
+
+        /*如果请求过于频繁，返回错误页面*/
+        if (!isRequestFrequencyValid(request, viewname)) {
+            mav.setViewName(viewMap.get("error"));
+            return mav;
+        }
 
         /*对于需要认证的页面，如果redis数据库中查询不到该token，则直接返回登录页*/
         Jedis jedis = redisUtil.getJedis();
@@ -225,20 +283,25 @@ public class MainController {
         HashMap<String, String> urlParam = handleUrlParam(request);
         HashMap<String, String> cookieData = handleCookies(request, response);
 
-        /*如果需要认证*/
+        /*如果请求过于频繁，返回错误*/
+        if (!isRequestFrequencyValid(request, handler)) {
+            responseData.put("error", "Request too frequently");
+            responseData.put("status", REQUEST_TOO_FREQUENTLY);
+            response.setStatus(REQUEST_TOO_FREQUENTLY);
+            return responseData;
+        }
+
+        /*如果需要认证，进行认证*/
         if (!unNeedAuthenticateHandler.contains(module + "/" + handler)) {
-            short status = handleAuthentication(urlParam, postData, request);
+            short status = handleApiAuthentication(urlParam, postData, request);
             switch (status) {
+                case SUCCESS:
+                    logger.debug("request authentication successfully");
+                    break;
                 case UNAUTHORISED_REQUEST: {
                     responseData.put("error", "Unauthorised request");
                     responseData.put("status", UNAUTHORISED_REQUEST);
                     response.setStatus(UNAUTHORISED_REQUEST);
-                    return responseData;
-                }
-                case REQUEST_TOO_FREQUENTLY: {
-                    responseData.put("error", "Request too frequency");
-                    responseData.put("status", REQUEST_TOO_FREQUENTLY);
-                    response.setStatus(REQUEST_TOO_FREQUENTLY);
                     return responseData;
                 }
                 case UNKNOWN_ERROR: {
@@ -248,14 +311,19 @@ public class MainController {
                     return responseData;
                 }
                 case INVALID_PHONE_NUMBER: {
-                    responseData.put("error", "Invalid user phone number");
+                    responseData.put("error", "param appid required");
                     responseData.put("status", INVALID_PHONE_NUMBER);
                     response.setStatus(INVALID_PHONE_NUMBER);
                     return responseData;
                 }
-                case SUCCESS:
+                case INVALID_SIGN: {
+                    responseData.put("error", "param sign required");
+                    responseData.put("status", INVALID_SIGN);
+                    response.setStatus(INVALID_SIGN);
+                    return responseData;
+                }
                 default:
-                    logger.debug("request authentication successfully");
+                    break;
             }
         }
 

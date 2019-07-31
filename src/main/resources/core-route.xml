@@ -25,6 +25,7 @@
         <entry key="logview" value="/sysmgmt/logmgmt"/>
         <entry key="userview" value="/sysmgmt/usermgmt"/>
         <entry key="default" value="login"/>
+        <entry key="error" value="error" />
     </util:map>
 
     <!--不需要认证的视图{viewname}-->
@@ -36,6 +37,8 @@
     <util:list id="unNeedAuthenticateHandler" list-class="java.util.ArrayList">
         <value type="java.lang.String">login/login</value>
         <value type="java.lang.String">login/logout</value>
+        <value type="java.lang.String">user/register</value>
+        <value type="java.lang.String">user/fetchCodeForRegister</value>
     </util:list>
 
 </beans>
