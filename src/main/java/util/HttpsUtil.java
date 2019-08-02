@@ -2,7 +2,6 @@ package util;
 
 import constant.Constant;
 import net.sf.json.JSONObject;
-import net.sf.json.util.JSONUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.config.Registry;
@@ -29,7 +28,7 @@ public class HttpsUtil {
 
     private static Logger logger = Logger.getLogger(HttpsUtil.class);
 
-    public static JSONObject post(String url, JSONObject params, HashMap<String, String> headers) {
+    public static JSONObject post(String url, String params, HashMap<String, String> headers) {
         return post(url, params, headers, "application/json");
     }
 
@@ -39,7 +38,7 @@ public class HttpsUtil {
      * @param headers
      * @return JSONObject  res.status返回的状态码，res.body 返回的数据字符串
      */
-    public static JSONObject post(String url, JSONObject params, HashMap<String, String> headers, String contentType) {
+    public static JSONObject post(String url, String params, HashMap<String, String> headers, String contentType) {
         HttpPost httpPost = new HttpPost(url);
         CloseableHttpClient client = getHttpsClient();
         if (headers.size() > 0) {
@@ -47,7 +46,7 @@ public class HttpsUtil {
                 httpPost.addHeader(key, headers.get(key));
             }
         }
-        StringEntity entity = new StringEntity(JSONUtils.valueToString(params), Constant.DEFAULT_CHARSET);
+        StringEntity entity = new StringEntity(params, Constant.DEFAULT_CHARSET);
         entity.setContentEncoding(Constant.DEFAULT_CHARSET);
         entity.setContentType(contentType);
         httpPost.setEntity(entity);
