@@ -95,7 +95,7 @@ public class AuthorizationDao {
     public int addAuthorization(Authorization authorization) {
         int status = -1;
         try {
-            status = jdbcTemplate.update(ADD_AUTHORIZATION, new String[]{
+            status = jdbcTemplate.update(ADD_AUTHORIZATION, new Object[]{
                     authorization.getSerial(),
                     authorization.getFromAccount(),
                     authorization.getToAccount(),
@@ -133,7 +133,7 @@ public class AuthorizationDao {
     public boolean existAuthorization(String serial, String fromAccount, String toAccount) {
         int count = 0;
         try {
-            count = jdbcTemplate.queryForObject(EXIST_AUTHORIZATION, new String[]{
+            count = jdbcTemplate.queryForObject(EXIST_AUTHORIZATION, new Object[]{
                     serial, fromAccount, toAccount}, Integer.class);
         } catch (Exception e) {
             logger.error("Failed to count authorization ,SQL error, phoneNum: " + fromAccount);
@@ -155,7 +155,7 @@ public class AuthorizationDao {
     public int delAllAuthorizationByOwner(String serial, String fromAccount) {
         int status = -1;
         try {
-            status = jdbcTemplate.update(DEL_AUTHORIZATION_BY_OWNER, new String[]{
+            status = jdbcTemplate.update(DEL_AUTHORIZATION_BY_OWNER, new Object[]{
                     serial, fromAccount
             });
         } catch (Exception e) {

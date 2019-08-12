@@ -15,7 +15,7 @@ import java.util.List;
 @Repository
 public class LockerDao {
     private static Logger logger = Logger.getLogger(LockerDao.class);
-    private final String COUNT_LOCKER_BY_SERIAL = "count(*) from t_locker where serial=?";
+    private final String COUNT_LOCKER_BY_SERIAL = "select count(*) from t_locker where serial= ?";
     private final String ADD_LOCKER = "insert into t_locker(serial,phoneNum,description," +
             "createTime,lastOpenTime,hwType) values(?,?,?,?,?,?)";
     private final String DEL_LOCKER = "delete from t_locker where phoneNum=? and serial=?";
@@ -38,16 +38,16 @@ public class LockerDao {
         String sql1;
         /*授权的锁*/
         String sql2;
-        String[] params;
+        Object[] params;
         if (serial == null || serial.equals("")) {
             sql1 = "select * from t_locker where phoneNum = ?";
-            params = new String[]{phoneNum};
+            params = new Object[]{phoneNum};
             sql2 = "select A.serial,A.phoneNum,A.description,A.createTime,A.lastOpenTime,"
                     + "A.hwType,A.toggleTimes from t_locker as A INNER JOIN  " +
                     "t_authorization as B on A.serial = B.serial  where B.toAccount = ?";
         } else {
             sql1 = "select * from t_locker where phoneNum = ? and serial = ?";
-            params = new String[]{phoneNum, serial};
+            params = new Object[]{phoneNum, serial};
             sql2 = "select A.serial,A.phoneNum,A.description,A.createTime,A.lastOpenTime,"
                     + "A.hwType,A.toggleTimes from t_locker as A INNER JOIN  " +
                     "t_authorization as B on A.serial = B.serial  where B.toAccount = ?" +
@@ -100,7 +100,7 @@ public class LockerDao {
     public int addLocker(Locker locker) {
         int status = 1;
         try {
-            jdbcTemplate.update(ADD_LOCKER, new String[]{
+            jdbcTemplate.update(ADD_LOCKER, new Object[]{
                     locker.getSerial(),
                     locker.getPhoneNum(),
                     locker.getDescription(),
@@ -109,6 +109,7 @@ public class LockerDao {
                     locker.getHwType()
             });
         } catch (Exception e) {
+            e.printStackTrace();
             logger.error("Failed to add new locker, SQL error");
             //TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             status = -1;
@@ -158,7 +159,7 @@ public class LockerDao {
         int status = -1;
         if (phoneNum != null && serial != null) {
             try {
-                status = jdbcTemplate.update(DEL_LOCKER, new String[]{phoneNum, serial});
+                status = jdbcTemplate.update(DEL_LOCKER, new Object[]{phoneNum, serial});
             } catch (Exception e) {
                 logger.error("Delete locker failed from database, phoneNum: " + phoneNum + " ,serial: " + serial);
                 //TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
@@ -171,7 +172,7 @@ public class LockerDao {
     public int transferLocker(String fromAccount, String serial, String toAccount) {
         int status = -1;
         try {
-            status = jdbcTemplate.update(TRANSFER_LOCKER, new String[]{toAccount, fromAccount, serial});
+            status = jdbcTemplate.update(TRANSFER_LOCKER, new Object[]{toAccount, fromAccount, serial});
         } catch (Exception e) {
             logger.error("Transfer locker from " + fromAccount + " to " + toAccount + " failed, SQL error");
         }

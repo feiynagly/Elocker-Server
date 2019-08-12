@@ -11,13 +11,11 @@ import util.RedisUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 import static constant.Constant.DATE_PATTERN;
 import static constant.Status.*;
 
-/*
- * Redis中数据类型{UUID:phonenum}
- * */
 @Service("LoginRequestHandler")
 public class LoginRequestHandler extends RequestHandler {
 
@@ -41,7 +39,6 @@ public class LoginRequestHandler extends RequestHandler {
     public void login() {
         String phoneNum = this.postData.has("phoneNum") ? this.postData.getString("phoneNum") : null;
         String post_passwd = this.postData.has("password") ? this.postData.getString("password") : null;
-        String token = this.cookieData.get("token");
 
         if (phoneNum == null || post_passwd == null) {
             this.responseData.put("error", "Username or password can not be empty");
@@ -49,7 +46,6 @@ public class LoginRequestHandler extends RequestHandler {
             return;
         }
         Jedis jedis = redisUtil.getJedis();
-
         /*记录重新登录次数*/
         jedis.set(phoneNum, String.valueOf(maxRetryTime), "NX", "EX", waitTime);
 
@@ -63,21 +59,33 @@ public class LoginRequestHandler extends RequestHandler {
         }
 
         String password = userDao.getPassword(phoneNum);
-        if (password != null && password.equals(post_passwd)) {
-            jedis.set(token, phoneNum, "NX", "EX", maxIdleTime);
+        if (post_passwd.equals(password)) {
+            /*将token缓存在redis数据库，用于后续页面请求*/
+            jedis.set(this.token, phoneNum, "NX", "EX", maxIdleTime);
+
+            /*为后续API请求设置apiKey*/
+            String apiKey = UUID.randomUUID().toString().replace("-", "");
+            if (userDao.setAppKey(apiKey, this.phoneNum) != 1) {
+                this.responseData.put("status", UNKNOWN_ERROR);
+                this.responseData.put("message", "Failed to set apiKey");
+                redisUtil.returnResource(jedis);
+                return;
+            }
 
             /*更新登录信息*/
-            String lastLoginIp = this.request.getRemoteAddr();
             String lastLoginTime = new SimpleDateFormat(DATE_PATTERN).format(new Date());
             User user = new User();
-            user.setPhoneNum(phoneNum);
-            user.setLastLoginIp(lastLoginIp);
+            user.setPhoneNum(this.phoneNum);
             user.setLastLoginTime(lastLoginTime);
+            user.setLastLoginIp(this.request.getRemoteAddr());
+            user.setUserAgent(this.request.getHeader("User-Agent"));
+            user.setAppVersion(this.request.getHeader("App-Version"));
             userDao.updateLoginInfo(user);
 
             this.responseData.put("redirectUrl", "mainview");
-            this.responseData.put("success", "login in success");
+            this.responseData.put("message", "Login in success");
             this.responseData.put("status", SUCCESS);
+            this.responseData.put("apiKey", apiKey);
             logger.info("User  " + phoneNum + "  login in successfully");
 
             /*数据库读取失败*/
@@ -89,8 +97,7 @@ public class LoginRequestHandler extends RequestHandler {
             this.responseData.put("error", "Username or password is wrong");
             this.responseData.put("status", INCORRECT_USERNAME_OR_PASSWORD);
         }
-        jedis.close();
-
+        redisUtil.returnResource(jedis);
     }
 
     public void logout() {
@@ -113,4 +120,5 @@ public class LoginRequestHandler extends RequestHandler {
     public void setRedisUtil(RedisUtil redisUtil) {
         this.redisUtil = redisUtil;
     }
+
 }

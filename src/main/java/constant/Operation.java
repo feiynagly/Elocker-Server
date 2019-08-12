@@ -13,6 +13,9 @@ public enum Operation {
     Login("Login"),
     Login_Out("Login_Out"),
     Change_Password("Change_Password"),
+    Reset_Password("Reset_Password"),
+    Add_User("Add_User"),
+    Get_Verification_Code("Get_Verification_Code"),
     Unknown("Unknow");
 
     private String description;

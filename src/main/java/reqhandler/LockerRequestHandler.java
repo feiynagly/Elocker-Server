@@ -107,6 +107,7 @@ public class LockerRequestHandler extends RequestHandler {
         }
 
         /*如果已经绑定到其它账户*/
+        boolean b = lockerDao.existSerial(locker.getSerial());
         if (lockerDao.existSerial(locker.getSerial())) {
             this.responseData.put("error", "The locker is bind to other account already");
             this.responseData.put("status", DUPLICATE_SERIAL_NUMBER);

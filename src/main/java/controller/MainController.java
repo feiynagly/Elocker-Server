@@ -83,8 +83,6 @@ public class MainController {
 
     private String phoneNum;
 
-    private String requestSign;
-
     /*处理Cookie*/
     private HashMap<String, String> handleCookies(HttpServletRequest request, HttpServletResponse response) {
         HashMap<String, String> cookieData = new HashMap<String, String>();
@@ -140,36 +138,43 @@ public class MainController {
         }
 
         /*如果cookie中没有token,则通过数字签名认证*/
-
         /*对于get 请求，携带的appid和sign存在于URL路径参数中*/
+        String requestSign = "";
+        String apiKey = "";
         if (request.getMethod().equals("GET")) {
-            this.phoneNum = urlParam.get("appid").trim();
-            this.requestSign = urlParam.get("sign").trim();
+            this.phoneNum = urlParam.containsKey("appid") ? urlParam.get("appid") : "";
+            requestSign = urlParam.containsKey("requestSign") ? urlParam.get("requestSign") : "";
         } else if (request.getMethod().equals("POST")) {
             /*对于post请求，携带的appid和sign存在于body中*/
-            this.phoneNum = postData.has("appid") ? postData.getString("appid").trim() : null;
-            this.requestSign = postData.has("sign") ? postData.getString("sign").trim() : null;
+            this.phoneNum = postData.has("appid") ? postData.getString("appid").trim() : "";
+            requestSign = postData.has("sign") ? postData.getString("sign").trim() : "";
         }
 
         if (this.phoneNum == null || this.phoneNum.equals("")) {
-            logger.error("phoneNum can not be null");
+            logger.error("PhoneNum can not be empty");
             return INVALID_PHONE_NUMBER;
         }
 
-        if (this.requestSign == null || this.requestSign.equals("")) {
-            logger.error("sign can not be null");
+        if (requestSign.equals("")) {
+            logger.error("Sign can not be empty");
             return INVALID_SIGN;
         }
 
-        /*首先查找redis缓存是否有对应的签名sign，如果存在则直接返回认证通过*/
+        /*首先查找redis缓存是否有对应的签名sign，并且apiKey未过期*/
         if (jedis.exists(requestSign)) {
-            redisUtil.returnResource(jedis);
-            return SUCCESS;
+            if (jedis.get(requestSign).equals(apiKey)) {
+                redisUtil.returnResource(jedis);
+                return SUCCESS;
+            } else {
+                /*Api Key 过期*/
+                redisUtil.returnResource(jedis);
+                return INVALID_API_KEY;
+            }
         } else {
             /*根据URL和用户名、密码计算数字签名，和请求携带的签名比较
-             * 计算方法：把URL请求除去域名（IP地址）后的路径部分和用户名、密码进行hash
+             * 计算方法：把URL请求除去域名（IP地址）后的路径部分和用户名、密码、apiKey进行hash
              * 例如 https://api.elocker.com.cn/locker/get
-             * 签名 sign=md5(locker/get+md5(phoneNum+md5(password))
+             * 签名 sign=md5(/locker/get+md5(phoneNum+md5(password)+md5(apiKey))
              * */
             String password = userDao.getPassword(this.phoneNum);
             String url = request.getRequestURI();
@@ -182,7 +187,7 @@ public class MainController {
         }
         redisUtil.returnResource(jedis);
         logger.error("unauthorized request" + "appid :" + this.phoneNum
-                + " , sign : " + this.requestSign + " ,src :" + request.getRemoteAddr()
+                + " , sign : " + requestSign + " ,src :" + request.getRemoteAddr()
                 + " ,src_port : " + request.getRemotePort());
         return UNAUTHORISED_REQUEST;
     }

@@ -3,7 +3,7 @@ info:
   description: "Elocker"
   version: "1.0.0"
   title: "Elocker API"
-host: "127.0.0.1:8080"
+host: "180.166.27.198:443"
 basePath: "/"
 tags:
   - name: "Locker"
@@ -383,7 +383,43 @@ paths:
           description: "unknow error"
         401:
           description: "Unauthorized request"
-  /user/fetchCodeForRegister:
+  /user/add:
+    post:
+      tags:
+        - "User"
+      summary: "add a new user"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "add a new user"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              phoneNum:
+                type: "string"
+              userName:
+                type: "string"
+              password:
+                type: "string"
+                description: "Encrypt password "
+              email:
+                type: "string"
+              code:
+                type: "string"
+                description: "verification code"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        606:
+          description: "Invalid phone number"
+        609:
+          description: "Incorrect verificaiton number"
+  /user/getCode:
     post:
       tags:
         - "User"
@@ -410,6 +446,38 @@ paths:
           description: "Send message failed"
         611:
           description: "Short message gateway is unreachable"
+  /user/resetPassword:
+    post:
+      tags:
+        - "User"
+      summary: "Reset password"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "Reset password"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              phoneNum:
+                type: "string"
+              password:
+                type: "string"
+              code:
+                type: "string"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "Unknow error"
+        606:
+          description: "Phone number can not be empty"
+        609:
+          description: "Verification code is incorrect"
+        613:
+          description: "User has not registered before"
   /user/changePassword:
     post:
       tags:
@@ -442,6 +510,39 @@ paths:
           description: "unknow error"
         601:
           description: "Incorrect username or password"
+  /user/changePhoneNum:
+    post:
+      tags:
+        - "User"
+      summary: "Change Phone Number"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "change phone number for user"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              appid:
+                type: "string"
+                description: "current phone number"
+              sign:
+                type: "string"
+              newPhoneNum:
+                type: "string"
+                description: "new phone number"
+              code:
+                type: "string"
+                description: "verification code"
+      responses:
+        200:
+          description: "Operation successsful"
+        500:
+          description: "unknow error"
+        609:
+          description: "Incorrect verification code"
   /login/login:
     post:
       tags:
@@ -470,6 +571,25 @@ paths:
           description: "Incorrect username or password"
         602:
           description: "Retry too many times"
+  /login/test:
+    post:
+      tags:
+        - "Login"
+      summary: "Login in"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "postData"
+          description: "change password for user"
+          required: true
+          schema:
+            type: "object"
+            properties:
+              phoneNum:
+                type: "string"
+              password:
+                type: "string"
 definitions:
   Locker:
     type: "object"

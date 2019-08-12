@@ -89,7 +89,7 @@ public class OperationLogDao {
     public int addOperationLog(OperationLog operationLog) {
         int status = -1;
         try {
-            status = jdbcTemplate.update(ADD_OPERATION_LOG, new String[]{
+            status = jdbcTemplate.update(ADD_OPERATION_LOG, new Object[]{
                     operationLog.getSerial(),
                     operationLog.getPhoneNum(),
                     operationLog.getOperation().toString(),
@@ -108,7 +108,7 @@ public class OperationLogDao {
         int status = -1;
         if (serial != null) {
             try {
-                status = jdbcTemplate.update(DEL_LOG_BY_SERIAL, new String[]{serial});
+                status = jdbcTemplate.update(DEL_LOG_BY_SERIAL, new Object[]{serial});
             } catch (Exception e) {
                 logger.error("failed to delete logs , serial: " + serial + " SQL error");
             }

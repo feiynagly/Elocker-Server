@@ -8,18 +8,19 @@ import java.util.Date;
 public class User {
 
     private String userName;
+    private String apiKey;
     private String password;
     private String phoneNum;
     private String createTime;
-    /*YYYY-MM-DD hh:mm:ss*/
-    private String lastLoginTime;
-    private String lastLoginIp;
     private short privilegeLevel;
     private String email;
+    private String lastLoginTime;
+    private String lastLoginIp;
+    private String appVersion;
+    private String userAgent;
 
     public User() {
         this.createTime = new SimpleDateFormat(Constant.DATE_PATTERN).format(new Date());
-        this.lastLoginTime = createTime;
         this.privilegeLevel = 0;
     }
 
@@ -51,12 +52,8 @@ public class User {
             this.userName = phoneNum;
     }
 
-    public String getLastLoginIp() {
-        return lastLoginIp;
-    }
-
-    public void setLastLoginIp(String lastLoginIp) {
-        this.lastLoginIp = lastLoginIp;
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 
     public short getPrivilegeLevel() {
@@ -79,8 +76,12 @@ public class User {
         return createTime;
     }
 
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 
     public String getLastLoginTime() {
@@ -89,5 +90,35 @@ public class User {
 
     public void setLastLoginTime(String lastLoginTime) {
         this.lastLoginTime = lastLoginTime;
+    }
+
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        if (appVersion != null)
+            this.appVersion = appVersion;
+        else
+            this.appVersion = "Unknow";
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        if (userAgent != null)
+            this.userAgent = userAgent;
+        else
+            this.userAgent = "Unknow";
+    }
+
+    public String getLastLoginIp() {
+        return lastLoginIp;
+    }
+
+    public void setLastLoginIp(String lastLoginIp) {
+        this.lastLoginIp = lastLoginIp;
     }
 }

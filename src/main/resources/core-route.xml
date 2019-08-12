@@ -37,8 +37,9 @@
     <util:list id="unNeedAuthenticateHandler" list-class="java.util.ArrayList">
         <value type="java.lang.String">login/login</value>
         <value type="java.lang.String">login/logout</value>
-        <value type="java.lang.String">user/register</value>
-        <value type="java.lang.String">user/fetchCodeForRegister</value>
+        <value type="java.lang.String">user/add</value>
+        <value type="java.lang.String">user/resetPassword</value>
+        <value type="java.lang.String">user/getCode</value>
     </util:list>
 
 </beans>

@@ -22,19 +22,20 @@
 
 2、API 数字签名说明
    1、对于GET请求
-       对于不包含cookie的GET请求（API请求）,通过数字签名认证。把整个URL请求路径后的部分和用户名、密码进行hash作为签名
-       例如 https://api.elocker.com.cn/locker/getAll?appid=phoneNum,sign=abcdef
-       sign=md5(/locker/get+md5(phoneNum+md5(password))*/
+       对于不包含cookie的GET请求（API请求）,通过数字签名认证。把整个URL请求路径后的部分和用户名、密码,apiKey进行hash作为签名
+       例如 https://api.elocker.com.cn/locker/getAll?appid=phoneNum&sign=abcdef
+       sign=md5(/locker/get+md5(phoneNum+md5(password)+ md5(apiKey)*/
 
        其中，get请求必须携带appid和sign参数
 
    2、对于POST请求
        对于不包含cookie的POST请求（API请求）,通过数字签名认证。把整个URL和用户名、密码进行hash作为签名
        例如 https://api.elocker.com.cn/locker/get
-       sign=md5(locker/get+md5(phoneNum+md5(password))
+       sign=md5(locker/get+md5(phoneNum+md5(password))+md5(apiKey))
 
        postData中必须至少包含appid,sign
 
+   3、对于cookie中包含token的，直接校对token是否存在
 3、password 算法
    enc_password=md5(phoneNum+md5(password))
    数据库中保存的是enc_password
