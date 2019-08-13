@@ -54,20 +54,32 @@ public class UserDao {
     }
 
     /*
-     * @param appKey
+     * @param apiKey
      * @param phoneNum
      * @return int 插入成功返回1，插入失败返回-1
      */
-    public int setAppKey(String appKey, String phoneNum) {
+    public int setApiKey(String phoneNum, String apiKey) {
         int stauts = 1;
-        String sql = "update t_user set appKey = ? where phoneNum = ?";
+        String sql = "update t_user set apiKey = ? where phoneNum = ?";
         try {
-            stauts = jdbcTemplate.update(sql, new Object[]{appKey, phoneNum});
+            stauts = jdbcTemplate.update(sql, new Object[]{apiKey, phoneNum});
         } catch (Exception e) {
             logger.error("Set app key failed , SQL update error");
             stauts = -1;
         }
         return stauts;
+    }
+
+    public String getApiKey(String phoneNum) {
+        String sql = "select apiKey from t_user where phoneNum = ?";
+        String apiKey;
+        try {
+            apiKey = jdbcTemplate.queryForObject(sql, new Object[]{phoneNum}, String.class);
+        } catch (Exception e) {
+            apiKey = null;
+            logger.error("Failed to get apikey , phoneNum: " + phoneNum);
+        }
+        return apiKey;
     }
 
     /*  更新lastLoginTime,appVersion,userAgent

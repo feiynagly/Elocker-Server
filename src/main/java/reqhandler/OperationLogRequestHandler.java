@@ -67,16 +67,16 @@ public class OperationLogRequestHandler extends RequestHandler {
             this.responseData.put("logs", logs);
             if (logs != null) {
                 this.responseData.put("status", SUCCESS);
-                this.responseData.put("success", "Get all logs successfully");
+                this.responseData.put("message", "Get all logs successfully");
             } else {
                 this.responseData.put("status", UNKNOWN_ERROR);
-                this.responseData.put("error", "unknown error");
+                this.responseData.put("message", "unknown error");
             }
         }
     }
 
     public void add() {
-        this.responseData.put("error", "unknown error");
+        this.responseData.put("message", "unknown error");
         this.responseData.put("status", UNKNOWN_ERROR);
         if (this.phoneNum != null && this.postData.containsKey("serial")) {
             OperationLog operationLog = new OperationLog();
@@ -99,8 +99,7 @@ public class OperationLogRequestHandler extends RequestHandler {
             /*提交到数据库*/
             if (operationLogDao.addOperationLog(operationLog) == 1) {
                 this.responseData.put("status", SUCCESS);
-                this.responseData.put("success", "Add operation log success");
-                this.responseData.remove("error");
+                this.responseData.put("message", "Add operation log success");
             }
         }
     }

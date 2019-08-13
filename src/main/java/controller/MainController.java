@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 import static constant.Status.*;
 
@@ -34,13 +33,9 @@ public class MainController {
 
     private static Logger logger = Logger.getLogger(MainController.class);
 
-    /*http 页面超时时间*/
-    @Value("${core.http.max_idle_time}")
-    private int maxHttpIdle;
-
-    /*签名超时时间*/
-    @Value("${core.api.sign_timeout}")
-    private int signTimeout;
+    /*token超时时间*/
+    @Value("${core.api.token_timeout}")
+    private int tokenTimeout;
 
     /*验证码超时时间*/
     @Value("${core.api.verification_code_timeout}")
@@ -81,24 +76,29 @@ public class MainController {
 
     private String token;
 
+    private String apiKey;
+
     private String phoneNum;
 
-    /*处理Cookie*/
-    private HashMap<String, String> handleCookies(HttpServletRequest request, HttpServletResponse response) {
-        HashMap<String, String> cookieData = new HashMap<String, String>();
+    /*获取token和apiKey 查找顺序依次为：1、header , 2、cookie*/
+    private void getToken(HttpServletRequest request) {
+
+        this.token = request.getHeader("Token");
+        this.apiKey = request.getHeader("Api-Key");
+        if (this.token != null && this.apiKey != null) {
+            return;
+        }
+
+        /*Header中未找到token和apiKey，从cookie中获取*/
         Cookie[] cookies = request.getCookies();
         if (cookies != null)
-            for (Cookie cookie : cookies)
-                cookieData.put(cookie.getName(), cookie.getValue());
-        this.token = cookieData.get("token");
-        if (this.token == null) {
-            this.token = UUID.randomUUID().toString().replace("-", "");
-            Cookie cookie = new Cookie("token", this.token);
-            cookie.setMaxAge(maxHttpIdle);
-            response.addCookie(cookie);
-            cookieData.put("token", this.token);
-        }
-        return cookieData;
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().toLowerCase().equals("token"))
+                    this.token = cookie.getValue();
+                else if (cookie.getName().toLowerCase().equals("api-key")) {
+                    this.apiKey = cookie.getValue();
+                }
+            }
     }
 
     /*将URL请求字符串转换为Map类型*/
@@ -120,80 +120,66 @@ public class MainController {
         return urlParam;
     }
 
-    private short handleApiAuthentication(HashMap<String, String> urlParam,
-                                          JSONObject postData, HttpServletRequest request) {
+    private short handleAuthentication(HttpServletRequest request) {
+        this.getToken(request);
+
+        if (this.token == null) {
+            return INVALID_TOKEN;
+        }
+        this.phoneNum = request.getHeader("App-Id");
+        if (this.phoneNum == null) {
+            return INVALID_PHONE_NUMBER;
+        }
+
         Jedis jedis = redisUtil.getJedis();
         if (jedis == null) {
             logger.error("Failed get redis instance from pool");
             return UNKNOWN_ERROR;
         }
 
-        /*如果Cookie中存在token，直接根据缓存验证token是否正确即可*/
-        if (this.token != null && jedis.exists(this.token)) {
-            this.phoneNum = jedis.get(token);
-            /*认证通过更新token超时时间*/
-            jedis.expire(this.token, maxHttpIdle);
-            redisUtil.returnResource(jedis);
-            return SUCCESS;
-        }
-
-        /*如果cookie中没有token,则通过数字签名认证*/
-        /*对于get 请求，携带的appid和sign存在于URL路径参数中*/
-        String requestSign = "";
-        String apiKey = "";
-        if (request.getMethod().equals("GET")) {
-            this.phoneNum = urlParam.containsKey("appid") ? urlParam.get("appid") : "";
-            requestSign = urlParam.containsKey("requestSign") ? urlParam.get("requestSign") : "";
-        } else if (request.getMethod().equals("POST")) {
-            /*对于post请求，携带的appid和sign存在于body中*/
-            this.phoneNum = postData.has("appid") ? postData.getString("appid").trim() : "";
-            requestSign = postData.has("sign") ? postData.getString("sign").trim() : "";
-        }
-
-        if (this.phoneNum == null || this.phoneNum.equals("")) {
-            logger.error("PhoneNum can not be empty");
-            return INVALID_PHONE_NUMBER;
-        }
-
-        if (requestSign.equals("")) {
-            logger.error("Sign can not be empty");
-            return INVALID_SIGN;
-        }
-
-        /*首先查找redis缓存是否有对应的签名sign，并且apiKey未过期*/
-        if (jedis.exists(requestSign)) {
-            if (jedis.get(requestSign).equals(apiKey)) {
+        /*在Redis查找是否有缓存*/
+        if (jedis.exists(this.phoneNum + "token")) {
+            String url = request.getRequestURI();
+            String sToken = DigestUtils.md5Hex(url + jedis.get(this.phoneNum + "token"));
+            if (this.token.equals(sToken)) {
+                /*认证通过更新token超时时间*/
+                jedis.expire(this.phoneNum + "token", tokenTimeout);
                 redisUtil.returnResource(jedis);
                 return SUCCESS;
             } else {
-                /*Api Key 过期*/
-                redisUtil.returnResource(jedis);
-                return INVALID_API_KEY;
-            }
-        } else {
-            /*根据URL和用户名、密码计算数字签名，和请求携带的签名比较
-             * 计算方法：把URL请求除去域名（IP地址）后的路径部分和用户名、密码、apiKey进行hash
-             * 例如 https://api.elocker.com.cn/locker/get
-             * 签名 sign=md5(/locker/get+md5(phoneNum+md5(password)+md5(apiKey))
-             * */
-            String password = userDao.getPassword(this.phoneNum);
-            String url = request.getRequestURI();
-            String sign = DigestUtils.md5Hex(url + password);
-            if (sign.equals(requestSign)) {
-                jedis.set(sign, this.phoneNum, "NX", "EX", signTimeout);
-                redisUtil.returnResource(jedis);
-                return SUCCESS;
+                return UNAUTHORISED_REQUEST;
             }
         }
+
+        /*Redis数据库中没有相应用于计算token的缓存*/
+        String sApiKey = userDao.getApiKey(this.phoneNum);
+        String sPassword = userDao.getPassword(this.phoneNum);
+        String url = request.getRequestURI();
+
+        if (sApiKey == null || sPassword == null) {
+            redisUtil.returnResource(jedis);
+            return UNKNOWN_ERROR;
+        } else if (this.apiKey == null) {
+            redisUtil.returnResource(jedis);
+            return INVALID_API_KEY;
+        } else if (!this.apiKey.equals(sApiKey)) {
+            redisUtil.returnResource(jedis);
+            return MULTI_ENDPOINT_LOGIN;
+        }
+
+        String partToken = DigestUtils.md5Hex(sPassword + sApiKey);
+        String sToken = DigestUtils.md5Hex(url + partToken);
+        if (sToken.equals(this.token)) {
+            jedis.setex(this.phoneNum + "token", tokenTimeout, partToken);
+            redisUtil.returnResource(jedis);
+            return SUCCESS;
+        }
         redisUtil.returnResource(jedis);
-        logger.error("unauthorized request" + "appid :" + this.phoneNum
-                + " , sign : " + requestSign + " ,src :" + request.getRemoteAddr()
-                + " ,src_port : " + request.getRemotePort());
         return UNAUTHORISED_REQUEST;
     }
 
     /*
-     * 对于页面请求和不需要认证的请求（例如登录和验证码），校验是否在规定时间内多次发送，
+     * 校验请求是否在规定时间内多次发送，
      * 校验规则：统计单位时间请求次数(相同的源地址+端口号为同一请求)
      * @param request
      * @param uri 对于POST请求，uri=module/handler ，对于get请求,uri=viewname
@@ -220,7 +206,7 @@ public class MainController {
         }
         redis.decr(key);
         if (Integer.parseInt(redis.get(key)) <= 0) {
-            logger.error("request too frequently !" + " host: " + request.getRemoteAddr()
+            logger.error("Request too frequently !" + " host: " + request.getRemoteAddr()
                     + " ,port: " + request.getRemotePort() + " ,url: " + request.getRequestURL()
                     + "method: " + request.getMethod() + "queryString: " + request.getQueryString());
             isValid = false;
@@ -242,22 +228,18 @@ public class MainController {
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
 
-        handleCookies(request, response);
-
         /*如果请求过于频繁，返回错误页面*/
         if (!isRequestFrequencyValid(request, viewname)) {
             mav.setViewName(viewMap.get("error"));
             return mav;
         }
 
-        /*对于需要认证的页面，如果redis数据库中查询不到该token，则直接返回登录页*/
-        Jedis jedis = redisUtil.getJedis();
-        if (!jedis.exists(this.token) && !unNeedAuthenticaionViews.contains(viewname)) {
+        /*对于需要认证的页面进行认证*/
+        if (!unNeedAuthenticaionViews.contains(viewname)
+                && handleAuthentication(request) != SUCCESS) {
             mav.setViewName(viewMap.get("default"));
-            jedis.close();
             return mav;
         }
-        redisUtil.returnResource(jedis);
 
         /*视图处理*/
         if (viewMap.containsKey(viewname))
@@ -281,13 +263,6 @@ public class MainController {
     ) throws UnsupportedEncodingException {
         JSONObject responseData = new JSONObject();
 
-        /*设置编码格式*/
-        request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        /*获取参数*/
-        HashMap<String, String> urlParam = handleUrlParam(request);
-        HashMap<String, String> cookieData = handleCookies(request, response);
-
         /*如果请求过于频繁，返回错误*/
         if (!isRequestFrequencyValid(request, handler)) {
             responseData.put("error", "Request too frequently");
@@ -296,37 +271,49 @@ public class MainController {
             return responseData;
         }
 
+        /*设置编码格式*/
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        HashMap<String, String> urlParam = handleUrlParam(request);
+
         /*如果需要认证，进行认证*/
         if (!unNeedAuthenticateHandler.contains(module + "/" + handler)) {
-            short status = handleApiAuthentication(urlParam, postData, request);
+            short status = handleAuthentication(request);
             switch (status) {
                 case SUCCESS:
-                    logger.debug("request authentication successfully");
+                    Cookie cookie = new Cookie("token", this.token);
+                    cookie.setMaxAge(tokenTimeout);
+                    response.addCookie(cookie);
                     break;
                 case UNAUTHORISED_REQUEST: {
-                    responseData.put("error", "Unauthorised request");
+                    responseData.put("message", "Unauthorised request");
                     responseData.put("status", UNAUTHORISED_REQUEST);
                     response.setStatus(UNAUTHORISED_REQUEST);
                     return responseData;
                 }
                 case UNKNOWN_ERROR: {
-                    responseData.put("error", "Unknow error");
+                    responseData.put("message", "Unknow error");
                     responseData.put("status", UNKNOWN_ERROR);
                     response.setStatus(UNKNOWN_ERROR);
                     return responseData;
                 }
                 case INVALID_PHONE_NUMBER: {
-                    responseData.put("error", "param appid required");
+                    responseData.put("message", "param appid required");
                     responseData.put("status", INVALID_PHONE_NUMBER);
                     response.setStatus(INVALID_PHONE_NUMBER);
                     return responseData;
                 }
-                case INVALID_SIGN: {
-                    responseData.put("error", "param sign required");
-                    responseData.put("status", INVALID_SIGN);
-                    response.setStatus(INVALID_SIGN);
+                case INVALID_TOKEN: {
+                    responseData.put("message", "param sign required");
+                    responseData.put("status", INVALID_TOKEN);
+                    response.setStatus(INVALID_TOKEN);
                     return responseData;
                 }
+                case MULTI_ENDPOINT_LOGIN:
+                    responseData.put("message", "Multi endpoint login");
+                    responseData.put("status", MULTI_ENDPOINT_LOGIN);
+                    response.setStatus(MULTI_ENDPOINT_LOGIN);
+                    return responseData;
                 default:
                     break;
             }
@@ -347,7 +334,7 @@ public class MainController {
 
         try {
             requestHandler = (RequestHandler) applicationContext.getBean(handlerClassName);
-            requestHandler.initParam(this.phoneNum, request, urlParam, postData, responseData, cookieData);
+            requestHandler.initParam(this.phoneNum, request, urlParam, postData, responseData, this.token);
         } catch (NoSuchBeanDefinitionException e) {
             logger.error("No bean named:" + handlerClassName);
             responseData.put("error", "Internal Error");

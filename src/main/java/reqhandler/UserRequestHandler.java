@@ -87,7 +87,7 @@ public class UserRequestHandler extends RequestHandler {
 
     /*申请验证码*/
     public void getCode() {
-        String tel = this.postData.has("appid") ? this.postData.getString("appid").trim() : null;
+        String tel = this.postData.has("phoneNum") ? this.postData.getString("phoneNum").trim() : null;
         String code = RandomStringUtils.random(6, "1234567890");
 
         HashMap<String, String> headers = new HashMap<String, String>();
@@ -195,7 +195,7 @@ public class UserRequestHandler extends RequestHandler {
                 log.setOperation(Operation.Change_Password);
                 log.setSerial(this.phoneNum);
                 operationLogDao.addOperationLog(log);
-                this.responseData.put("success", "update password successfully");
+                this.responseData.put("message", "update password successfully");
                 this.responseData.put("status", SUCCESS);
             } else {
                 this.responseData.put("error", "Internal error");

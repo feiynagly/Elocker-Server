@@ -3,7 +3,7 @@ info:
   description: "Elocker"
   version: "1.0.0"
   title: "Elocker API"
-host: "180.166.27.198:443"
+host: "127.0.0.1:8080"
 basePath: "/"
 tags:
   - name: "Locker"
@@ -29,16 +29,9 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - name: "appid"
-          in: "query"
-          description: "phone number of the current user"
-          required: true
-          type: "string"
-        - name: "sign"
-          in: "query"
-          description: "signature of the request"
-          required: true
-          type: "string"
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - name: "serial"
           in: "query"
           description: "serial of the locker"
@@ -61,12 +54,21 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "post body data"
           required: true
           schema:
-            $ref: "#/definitions/Locker"
+            type: object
+            properties:
+              serial:
+                type: "string"
+              description:
+                type: "string"
+
       responses:
         200:
           description: "Operation successful"
@@ -89,12 +91,20 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "post body data"
           required: true
           schema:
-            $ref: "#/definitions/Locker"
+            type: object
+            properties:
+              serial:
+                type: "string"
+              description:
+                type: "string"
       responses:
         200:
           description: "Operation successsful"
@@ -113,6 +123,9 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: ""
@@ -120,10 +133,6 @@ paths:
           schema:
             type: "object"
             properties:
-              appid:
-                type: "string"
-              sign:
-                type: "string"
               serial:
                 type: "string"
                 description: "locker serial"
@@ -150,6 +159,9 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "locker serial array which to delete"
@@ -157,10 +169,6 @@ paths:
           schema:
             type: "object"
             properties:
-              appid:
-                type: "string"
-              sign:
-                type: "string"
               lockerSerials:
                 type: "array"
                 items:
@@ -170,7 +178,7 @@ paths:
         200:
           description: "Operation successsful"
         500:
-          description: "unknow error"
+          description: "Unknow error"
         401:
           description: "Unauthorized request"
   /authorization/get:
@@ -181,16 +189,9 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - name: "appid"
-          in: "query"
-          description: "phone number of the current user"
-          required: true
-          type: "string"
-        - name: "sign"
-          in: "query"
-          description: "signature of the request"
-          required: true
-          type: "string"
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - name: "toAccount"
           in: "query"
           type: "string"
@@ -216,6 +217,9 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "Authorization entry"
@@ -239,6 +243,9 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "Authorization entry"
@@ -262,6 +269,9 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "Authorization ids that to delete"
@@ -287,8 +297,6 @@ paths:
                       type: "string"
                       description: "Serial number of locker"
             example:
-              appid: "15851841387"
-              sign: "43052bd7afce21cfa1b8929b560a2057"
               ids:
                 - id:1000 ,serial: "abdcef"
                 - id:10001 , serial: "defghi"
@@ -308,16 +316,9 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - name: "appid"
-          in: "query"
-          description: "phone number of the current user"
-          required: true
-          type: "string"
-        - name: "sign"
-          in: "query"
-          description: "signature of the request"
-          required: true
-          type: "string"
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - name: "serial"
           in: "query"
           description: "serial of the locker"
@@ -345,6 +346,9 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "operation log to add"
@@ -366,16 +370,9 @@ paths:
       produces:
         - "application/json"
       parameters:
-        - name: "appid"
-          in: "query"
-          description: "phone number of the current user"
-          required: true
-          type: "string"
-        - name: "sign"
-          in: "query"
-          description: "signature of the request"
-          required: true
-          type: "string"
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
       responses:
         200:
           description: "Operation successsful"
@@ -393,7 +390,7 @@ paths:
       parameters:
         - in: "body"
           name: "postData"
-          description: "add a new user"
+          description: "Add a new user"
           required: true
           schema:
             type: "object"
@@ -433,7 +430,7 @@ paths:
           schema:
             type: "object"
             properties:
-              appid:
+              phoneNum:
                 type: "string"
       responses:
         200:
@@ -486,6 +483,9 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "change password for user"
@@ -493,10 +493,6 @@ paths:
           schema:
             type: "object"
             properties:
-              appid:
-                type: "string"
-              sign:
-                type: "string"
               oldpass:
                 type: "string"
                 description: "encryption password text"
@@ -518,6 +514,9 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/App-Id'
+        - $ref: '#/parameters/Token'
+        - $ref: '#/parameters/Api-Key'
         - in: "body"
           name: "postData"
           description: "change phone number for user"
@@ -525,11 +524,6 @@ paths:
           schema:
             type: "object"
             properties:
-              appid:
-                type: "string"
-                description: "current phone number"
-              sign:
-                type: "string"
               newPhoneNum:
                 type: "string"
                 description: "new phone number"
@@ -571,53 +565,39 @@ paths:
           description: "Incorrect username or password"
         602:
           description: "Retry too many times"
-  /login/test:
-    post:
-      tags:
-        - "Login"
-      summary: "Login in"
-      produces:
-        - "application/json"
-      parameters:
-        - in: "body"
-          name: "postData"
-          description: "change password for user"
-          required: true
-          schema:
-            type: "object"
-            properties:
-              phoneNum:
-                type: "string"
-              password:
-                type: "string"
+parameters:
+  App-Id:
+    in: header
+    name: App-Id
+    required: true
+    type: string
+  Token:
+    in: header
+    name: Token
+    required: true
+    type: string
+  Api-Key:
+    in: header
+    name: Api-Key
+    required: true
+    type: string
+  User-Agent:  # <-- Arbitrary name for the definition that will be used to refer to it.
+    # Not necessarily the same as the parameter name.
+    in: header
+    name: User-Agent
+    required: true
+    type: string
+    description: "the string to describe the client os and version information"
+  App-Version:
+    in: header
+    name: App-Version
+    required: true
+    type: string
+    description: "The version of client app"
 definitions:
-  Locker:
-    type: "object"
-    properties:
-      appid:
-        type: "string"
-        description: "phone number of current user"
-      sign:
-        type: "string"
-        description: "signature of request"
-      serial:
-        type: "string"
-      description:
-        type: "string"
-    example:
-      appid: "15851841387"
-      sign: "54b4f929165b75ebb3f3834733c12f1a"
-      serial: "abcdef"
-      description: "My Locker"
   Authorization:
     type: "object"
     properties:
-      appid:
-        type: "string"
-        description: "phone number of current user"
-      sign:
-        type: "string"
-        description: "signature of request"
       serial:
         type: "string"
         description: "serial of the locker to authorize"
@@ -640,8 +620,6 @@ definitions:
       dailyEndTime:
         type: "string"
     example:
-      appid: "15851841387"
-      sign: "54b4f929165b75ebb3f3834733c12f1a"
       serial: "abcdef"
       toAccount: "13167017116"
       startTime: "2019-06-05 00:00:00"
@@ -653,12 +631,6 @@ definitions:
   AuthorizationUpdate:
     type: "object"
     properties:
-      appid:
-        type: "string"
-        description: "phone number of current user"
-      sign:
-        type: "string"
-        description: "signature of request"
       id:
         type: "integer"
         format: "int64"
@@ -678,12 +650,6 @@ definitions:
   OperationLog:
     type: "object"
     properties:
-      appid:
-        type: "string"
-        description: "phone number of current user"
-      sign:
-        type: "string"
-        description: "signature of request"
       serial:
         type: "string"
         description: "locker serial"

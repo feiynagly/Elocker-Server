@@ -44,10 +44,10 @@ public class LockerRequestHandler extends RequestHandler {
         List<Locker> lockerList = lockerDao.getLockerListByPhoneNum(this.phoneNum, serial);
         this.responseData.put("lockerList", lockerList);
         if (lockerList != null) {
-            this.responseData.put("success", "get locker successfully");
+            this.responseData.put("message", "get locker successfully");
             this.responseData.put("status", SUCCESS);
         } else {
-            this.responseData.put("error", "Internal error");
+            this.responseData.put("message", "Internal error");
             this.responseData.put("status", UNKNOWN_ERROR);
         }
 
@@ -71,7 +71,7 @@ public class LockerRequestHandler extends RequestHandler {
 
             /*消息处理*/
             if (status == 1) {
-                this.responseData.put("success", "Add new locker success");
+                this.responseData.put("message", "Add new locker success");
                 this.responseData.put("status", SUCCESS);
                 OperationLog operationLog = new OperationLog();
                 operationLog.setPhoneNum(this.phoneNum);
@@ -129,7 +129,7 @@ public class LockerRequestHandler extends RequestHandler {
         if (serial != null && this.phoneNum != null) {
             int status = lockerDao.updateLockerDescription(locker);
             if (status == 1) {
-                this.responseData.put("success", "update locker success");
+                this.responseData.put("message", "update locker success");
                 this.responseData.put("status", SUCCESS);
                 OperationLog operationLog = new OperationLog();
                 operationLog.setPhoneNum(this.phoneNum);
@@ -180,7 +180,7 @@ public class LockerRequestHandler extends RequestHandler {
         if (userDao.existUser(toAccount)) {
             int status = lockerDao.transferLocker(this.phoneNum, serial, toAccount);
             if (status > 0) {
-                this.responseData.put("success", "transfer locker success");
+                this.responseData.put("message", "transfer locker success");
                 this.responseData.put("status", SUCCESS);
                 /*删除相关授权*/
                 authorizationDao.delAllAuthorizationByOwner(serial, this.phoneNum);

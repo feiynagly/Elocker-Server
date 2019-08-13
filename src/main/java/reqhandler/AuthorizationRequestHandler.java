@@ -45,7 +45,7 @@ public class AuthorizationRequestHandler extends RequestHandler {
         this.responseData.put("authorizationList", authorizationList);
         if (authorizationList != null) {
             this.responseData.put("status", SUCCESS);
-            this.responseData.put("success", "get authorization list successfully");
+            this.responseData.put("message", "get authorization list successfully");
             this.responseData.remove("error");
         }
     }
@@ -90,7 +90,7 @@ public class AuthorizationRequestHandler extends RequestHandler {
             authorization.setDailyEndTime(this.postData.getString("dailyEndTime"));
 
         if (authorizationDao.addAuthorization(authorization) == 1) {
-            this.responseData.put("success", "Add new authorization successfully");
+            this.responseData.put("message", "Add new authorization successfully");
             this.responseData.put("status", SUCCESS);
             OperationLog operationLog = new OperationLog();
             operationLog.setSerial(serial);
@@ -111,10 +111,10 @@ public class AuthorizationRequestHandler extends RequestHandler {
         authorization.setEndTime(postData.getString("endTime"));
         authorization.setDescription(postData.getString("description"));
         if (authorizationDao.updateAuthorization(authorization) == 1) {
-            this.responseData.put("success", "update authorization successfully");
+            this.responseData.put("message", "update authorization successfully");
             this.responseData.put("status", SUCCESS);
         } else {
-            this.responseData.put("error", "update authorization failed");
+            this.responseData.put("message", "update authorization failed");
             this.responseData.put("status", UNKNOWN_ERROR);
         }
     }
