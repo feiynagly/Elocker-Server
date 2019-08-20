@@ -2,7 +2,7 @@ package reqhandler;
 
 import constant.Operation;
 import dao.LockerDao;
-import dao.OperationLogDao;
+import dao.LogDao;
 import model.Locker;
 import model.OperationLog;
 import org.apache.log4j.Logger;
@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pojo.OperationLogViewData;
 
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -20,12 +19,12 @@ import static constant.Constant.DATE_PATTERN;
 import static constant.Status.SUCCESS;
 import static constant.Status.UNKNOWN_ERROR;
 
-@Service("OperationLogRequestHandler")
-public class OperationLogRequestHandler extends RequestHandler {
+@Service("LogRequestHandler")
+public class LogRequestHandler extends RequestHandler {
 
-    private static Logger logger = Logger.getLogger(OperationLogRequestHandler.class);
+    private static Logger logger = Logger.getLogger(LogRequestHandler.class);
     @Autowired
-    private OperationLogDao operationLogDao;
+    private LogDao logDao;
     @Autowired
     private LockerDao lockerDao;
 
@@ -34,7 +33,6 @@ public class OperationLogRequestHandler extends RequestHandler {
         String endTime = this.urlParam.get("endTime");
         String serial = this.urlParam.get("serial");
 
-        Timestamp sTimestamp = null, eTimestamp = null;
         //如果开始时间为空，则设置为最近三个月
         if (startTime == null || startTime.equals("")) {
             Calendar calendar = Calendar.getInstance();
@@ -50,20 +48,41 @@ public class OperationLogRequestHandler extends RequestHandler {
             logger.info("endTime is not set , now set default to " + endTime);
         }
 
+        int page = 0;
+        int pageSize = 1000;
+        /*获取分页信息,如果不包含分页信息，则设置为0页，每页1000条*/
+        if (urlParam.containsKey("page")) {
+            try {
+                page = Integer.parseInt(urlParam.get("page"));
+            } catch (Exception e) {
+                logger.error("Invalid page param , page: " + page);
+            }
+        }
+        if (urlParam.containsKey("pageSize")) {
+            try {
+                pageSize = Integer.parseInt(urlParam.get("pageSize"));
+            } catch (Exception e) {
+                logger.error("Invalid pagesize param, pageSize: " + pageSize);
+            }
+        }
+
         /*请求单个设备的日志*/
         if (serial != null && !serial.equals("")) {
-            List<OperationLogViewData> logs = operationLogDao.getLogsBySerial(this.phoneNum, serial, startTime, endTime);
+            List<OperationLogViewData> logs = logDao.getLogsBySerial(
+                    this.phoneNum, serial, startTime, endTime, page, pageSize);
             this.responseData.put("logs", logs);
             if (logs != null) {
                 this.responseData.put("status", SUCCESS);
+                this.responseData.put("message", "Get log successfully");
             } else {
                 this.responseData.put("status", UNKNOWN_ERROR);
-                this.responseData.put("error", "unknown error");
+                this.responseData.put("message", "unknown error");
             }
         }
         /*获取登录账户的所有日志*/
         else {
-            List<OperationLogViewData> logs = operationLogDao.getLogs(this.phoneNum, startTime, endTime);
+            List<OperationLogViewData> logs = logDao.getLogs(
+                    this.phoneNum, startTime, endTime, page, pageSize);
             this.responseData.put("logs", logs);
             if (logs != null) {
                 this.responseData.put("status", SUCCESS);
@@ -97,15 +116,15 @@ public class OperationLogRequestHandler extends RequestHandler {
             }
 
             /*提交到数据库*/
-            if (operationLogDao.addOperationLog(operationLog) == 1) {
+            if (logDao.addOperationLog(operationLog) == 1) {
                 this.responseData.put("status", SUCCESS);
                 this.responseData.put("message", "Add operation log success");
             }
         }
     }
 
-    public void setOperationLogDao(OperationLogDao operationLogDao) {
-        this.operationLogDao = operationLogDao;
+    public void setLogDao(LogDao logDao) {
+        this.logDao = logDao;
     }
 
     public void setLockerDao(LockerDao lockerDao) {

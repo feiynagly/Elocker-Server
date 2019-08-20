@@ -35,7 +35,7 @@ public class LockerRequestHandler extends RequestHandler {
     private AuthorizationDao authorizationDao;
 
     @Autowired
-    private OperationLogDao operationLogDao;
+    private LogDao logDao;
 
     /*如果serial 为null或者""，获取该用户下的所有locker(以及授权给用户的锁)
      *，否则获取指定的locker*/
@@ -78,7 +78,7 @@ public class LockerRequestHandler extends RequestHandler {
                 operationLog.setOperation(Operation.Add_Locker);
                 operationLog.setSerial(serial);
                 operationLog.setDescription("Add Locker " + serial);
-                operationLogDao.addOperationLog(operationLog);
+                logDao.addOperationLog(operationLog);
             } else if (status == -1) {
                 this.responseData.put("error", "Internal error");
                 this.responseData.put("status", UNKNOWN_ERROR);
@@ -136,7 +136,7 @@ public class LockerRequestHandler extends RequestHandler {
                 operationLog.setSerial(serial);
                 operationLog.setOperation(Operation.Modify_Locker);
                 operationLog.setDescription("Modify Locker Name");
-                operationLogDao.addOperationLog(operationLog);
+                logDao.addOperationLog(operationLog);
             } else {
                 this.responseData.put("error", "update locker failed");
                 this.responseData.put("status", UNKNOWN_ERROR);
@@ -158,13 +158,13 @@ public class LockerRequestHandler extends RequestHandler {
                     /*删除相关授权*/
                     authorizationDao.delAllAuthorizationByOwner(serial, this.phoneNum);
                     /*删除相关日志，并添加一条删除记录*/
-                    operationLogDao.delOperationLogBySerial(serial);
+                    logDao.delOperationLogBySerial(serial);
                     OperationLog operationLog = new OperationLog();
                     operationLog.setSerial(serial);
                     operationLog.setOperation(Operation.Delete_Locker);
                     operationLog.setPhoneNum(this.phoneNum);
                     operationLog.setDescription("Delete Locker " + serial);
-                    operationLogDao.addOperationLog(operationLog);
+                    logDao.addOperationLog(operationLog);
                 } else
                     error.add(serial);
             }
@@ -190,7 +190,7 @@ public class LockerRequestHandler extends RequestHandler {
                 operationLog.setSerial(serial);
                 operationLog.setOperation(Operation.Transfer_Locker);
                 operationLog.setDescription("Transfer Locker from " + this.phoneNum);
-                operationLogDao.addOperationLog(operationLog);
+                logDao.addOperationLog(operationLog);
 
             } else {
                 this.responseData.put("error", "Internal error");
@@ -215,8 +215,8 @@ public class LockerRequestHandler extends RequestHandler {
         this.userDao = userDao;
     }
 
-    public void setOperationLogDao(OperationLogDao operationLogDao) {
-        this.operationLogDao = operationLogDao;
+    public void setLogDao(LogDao logDao) {
+        this.logDao = logDao;
     }
 
     public void setAuthorizationDao(AuthorizationDao authorizationDao) {

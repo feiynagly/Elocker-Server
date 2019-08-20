@@ -1,9 +1,9 @@
 swagger: "2.0"
 info:
-  description: "Elocker"
+  description: "Elocker 180.166.27.198"
   version: "1.0.0"
   title: "Elocker API"
-host: "127.0.0.1:8080"
+host: "180.166.27.198:443"
 basePath: "/"
 tags:
   - name: "Locker"
@@ -331,6 +331,16 @@ paths:
           in: "query"
           description: "end time of the log"
           type: "string"
+        - name: "page"
+          in: "query"
+          description: "page index, begins at 0"
+          type: "integer"
+          format: "int32"
+        - name: "pageSize"
+          in: "query"
+          description: "page size"
+          type: "integer"
+          format: "int32"
       responses:
         200:
           description: "successful operation"
@@ -545,9 +555,11 @@ paths:
       produces:
         - "application/json"
       parameters:
+        - $ref: '#/parameters/User-Agent'
+        - $ref: '#/parameters/App-Version'
         - in: "body"
           name: "postData"
-          description: "change password for user"
+          description: "login"
           required: true
           schema:
             type: "object"
@@ -571,16 +583,19 @@ parameters:
     name: App-Id
     required: true
     type: string
+    description: "App-Id"
   Token:
     in: header
     name: Token
     required: true
     type: string
+    description: "Token"
   Api-Key:
     in: header
     name: Api-Key
     required: true
     type: string
+    description: "Api key"
   User-Agent:  # <-- Arbitrary name for the definition that will be used to refer to it.
     # Not necessarily the same as the parameter name.
     in: header

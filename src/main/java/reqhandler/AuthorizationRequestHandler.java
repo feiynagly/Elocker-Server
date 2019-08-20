@@ -2,8 +2,8 @@ package reqhandler;
 
 import constant.Operation;
 import dao.AuthorizationDao;
+import dao.LogDao;
 import dao.ManuInfoDao;
-import dao.OperationLogDao;
 import dao.UserDao;
 import model.Authorization;
 import model.OperationLog;
@@ -32,7 +32,7 @@ public class AuthorizationRequestHandler extends RequestHandler {
     private UserDao userDao;
 
     @Autowired
-    private OperationLogDao operationLogDao;
+    private LogDao logDao;
 
     public void get() {
         this.responseData.put("error", "Unknown error");
@@ -97,7 +97,7 @@ public class AuthorizationRequestHandler extends RequestHandler {
             operationLog.setPhoneNum(this.phoneNum);
             operationLog.setOperation(Operation.Add_Authorization);
             operationLog.setDescription("Add a new authorization");
-            operationLogDao.addOperationLog(operationLog);
+            logDao.addOperationLog(operationLog);
         } else {
             this.responseData.put("error", "Add authorization failed");
             this.responseData.put("status", UNKNOWN_ERROR);
@@ -135,7 +135,7 @@ public class AuthorizationRequestHandler extends RequestHandler {
                 operationLog.setPhoneNum(this.phoneNum);
                 operationLog.setOperation(Operation.Delete_Authorization);
                 operationLog.setSerial(serial);
-                operationLogDao.addOperationLog(operationLog);
+                logDao.addOperationLog(operationLog);
             }
             else
                 error.add(id);
@@ -156,7 +156,7 @@ public class AuthorizationRequestHandler extends RequestHandler {
         this.manuInfoDao = manuInfoDao;
     }
 
-    public void setOperationLogDao(OperationLogDao operationLogDao) {
-        this.operationLogDao = operationLogDao;
+    public void setLogDao(LogDao logDao) {
+        this.logDao = logDao;
     }
 }

@@ -1,7 +1,7 @@
 package reqhandler;
 
 import constant.Operation;
-import dao.OperationLogDao;
+import dao.LogDao;
 import dao.UserDao;
 import model.OperationLog;
 import model.User;
@@ -40,7 +40,7 @@ public class UserRequestHandler extends RequestHandler {
     private RedisUtil redisUtil;
 
     @Autowired
-    private OperationLogDao operationLogDao;
+    private LogDao logDao;
 
     public void add() {
         String tel = this.postData.has("phoneNum") ? this.postData.getString("phoneNum").trim() : "";
@@ -105,7 +105,7 @@ public class UserRequestHandler extends RequestHandler {
             log.setOperation(Operation.Get_Verification_Code);
             log.setSerial("");
             log.setDescription("IP: " + this.request.getRemoteHost());
-            operationLogDao.addOperationLog(log);
+            logDao.addOperationLog(log);
             String url = "https://sms.yunpian.com/v2/sms/single_send.json";
             JSONObject res = HttpsUtil.post(url, params, headers, contentType);
             if (res.getInt("status") != -1) {
@@ -161,7 +161,7 @@ public class UserRequestHandler extends RequestHandler {
                 log.setSerial("");
                 log.setDescription("IP: " + request.getRemoteHost());
                 log.setOperation(Operation.Reset_Password);
-                operationLogDao.addOperationLog(log);
+                logDao.addOperationLog(log);
                 logger.info(tel + "reset password");
             } else {
                 this.responseData.put("status", UNKNOWN_ERROR);
@@ -194,7 +194,7 @@ public class UserRequestHandler extends RequestHandler {
                 log.setPhoneNum(this.phoneNum);
                 log.setOperation(Operation.Change_Password);
                 log.setSerial(this.phoneNum);
-                operationLogDao.addOperationLog(log);
+                logDao.addOperationLog(log);
                 this.responseData.put("message", "update password successfully");
                 this.responseData.put("status", SUCCESS);
             } else {
@@ -255,7 +255,7 @@ public class UserRequestHandler extends RequestHandler {
         this.redisUtil = redisUtil;
     }
 
-    public void setOperationLogDao(OperationLogDao operationLogDao) {
-        this.operationLogDao = operationLogDao;
+    public void setLogDao(LogDao logDao) {
+        this.logDao = logDao;
     }
 }

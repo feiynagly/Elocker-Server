@@ -88,8 +88,7 @@ public class UserDao {
      */
     public int updateLoginInfo(User user) {
         int status;
-        String sql = "update t_user (lastLoginTime,lastLoginIp,appVersion,userAgent) values " +
-                " (?,?.?,?) where phoneNum = ? ";
+        String sql = "update t_user  set lastLoginTime = ?,lastLoginIp = ?,appVersion = ?,userAgent = ? where phoneNum = ? ";
         try {
             status = jdbcTemplate.update(sql, new Object[]{
                     user.getLastLoginTime(),
@@ -100,6 +99,7 @@ public class UserDao {
             });
         } catch (Exception e) {
             status = -1;
+            e.printStackTrace();
             logger.error("Failed to update login info , SQL error");
         }
         return status;

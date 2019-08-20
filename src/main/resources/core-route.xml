@@ -12,7 +12,7 @@
         <entry key="login" value="LoginRequestHandler"/>
         <entry key="locker" value="LockerRequestHandler"/>
         <entry key="authorization" value="AuthorizationRequestHandler"/>
-        <entry key="log" value="OperationLogRequestHandler"/>
+        <entry key="log" value="LogRequestHandler" />
         <entry key="user" value="UserRequestHandler"/>
     </util:map>
 
