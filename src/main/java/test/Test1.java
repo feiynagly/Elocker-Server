@@ -1,6 +1,8 @@
 package test;
 
-import java.util.UUID;
+import constant.Constant;
+
+import java.text.SimpleDateFormat;
 
 public class Test1 {
     public static void main(String args[]) {
@@ -9,6 +11,12 @@ public class Test1 {
         System.out.println("".equals(redis.get("code")));
         redis.close();*/
 
-        System.out.println(UUID.randomUUID().toString().replaceAll("-", ""));
+        String date = "2019-7-1 00:00:00";
+        SimpleDateFormat sdf = new SimpleDateFormat(Constant.DATE_PATTERN);
+        try {
+            System.out.println(sdf.format(sdf.parse(null)));
+        } catch (Exception e) {
+            System.out.println("Error");
+        }
     }
 }

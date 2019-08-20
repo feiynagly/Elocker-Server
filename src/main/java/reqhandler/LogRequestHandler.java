@@ -33,19 +33,26 @@ public class LogRequestHandler extends RequestHandler {
         String endTime = this.urlParam.get("endTime");
         String serial = this.urlParam.get("serial");
 
-        //如果开始时间为空，则设置为最近三个月
-        if (startTime == null || startTime.equals("")) {
-            Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN);
+        Calendar calendar = Calendar.getInstance();
+
+        /*将日期字符串格式化为标准字符串 MYSQL不能识别2019-8-2 00:00:00这样的日期字符串*/
+        try {
+            startTime = sdf.format(sdf.parse(startTime));
+        } catch (Exception e) {
+            //如果开始时间为空或无法解析的字符串，则设置为最近7天
             calendar.setTime(new Date());
-            calendar.add(Calendar.MONTH, -1);
-            startTime = new SimpleDateFormat(DATE_PATTERN).format(calendar.getTime());
-            logger.info("startTime is not set , now set default to " + startTime);
+            calendar.add(Calendar.DAY_OF_MONTH, -7);
+            startTime = sdf.format(calendar.getTime());
+            logger.debug("startTime is not set or invalid, now set default to : " + startTime);
         }
 
-        //如果结束时间为空，则设置为当前时间
-        if (endTime == null || endTime.equals("")) {
-            endTime = new SimpleDateFormat(DATE_PATTERN).format(new Date());
-            logger.info("endTime is not set , now set default to " + endTime);
+        try {
+            endTime = sdf.format(sdf.parse(endTime));
+        } catch (Exception e) {
+            //如果结束时间为空，则设置为当前时间
+            logger.debug("endTime is not set or invalid, now set default to " + endTime);
+            endTime = sdf.format(new Date());
         }
 
         int page = 0;
