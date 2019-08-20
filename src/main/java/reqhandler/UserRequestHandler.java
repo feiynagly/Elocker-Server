@@ -123,12 +123,12 @@ public class UserRequestHandler extends RequestHandler {
                 this.responseData.put("detail", response.containsKey("detail") ? response.getString("detail") : "");
             } else {
                 this.responseData.put("status", SHORT_MESSAGE_GATEWAY_UNREACHABLE);
-                this.responseData.put("error", "Internal Error");
+                this.responseData.put("message", "Internal Error");
                 logger.error("Can not reache short message gateway");
             }
         } else {
             this.responseData.put("status", INVALID_PHONE_NUMBER);
-            this.responseData.put("error", "Phone number can not be empty");
+            this.responseData.put("message", "Phone number can not be empty");
         }
     }
 
@@ -176,7 +176,7 @@ public class UserRequestHandler extends RequestHandler {
 
     public void changePassword() {
         if (this.phoneNum == null) {
-            this.responseData.put("error", "Internal Error");
+            this.responseData.put("message", "Internal Error");
             this.responseData.put("status", UNKNOWN_ERROR);
             return;
         }
@@ -198,11 +198,11 @@ public class UserRequestHandler extends RequestHandler {
                 this.responseData.put("message", "update password successfully");
                 this.responseData.put("status", SUCCESS);
             } else {
-                this.responseData.put("error", "Internal error");
+                this.responseData.put("message", "Internal error");
                 this.responseData.put("status", UNKNOWN_ERROR);
             }
         } else {
-            this.responseData.put("error", "old password is wrong");
+            this.responseData.put("message", "old password is wrong");
             this.responseData.put("status", INCORRECT_USERNAME_OR_PASSWORD);
             logger.info("Failed to update password for " + this.phoneNum + " ,old password is wrong");
         }
@@ -241,7 +241,7 @@ public class UserRequestHandler extends RequestHandler {
                 this.responseData.put("user", user);
                 this.responseData.put("status", SUCCESS);
             } else {
-                this.responseData.put("error", "get user info error");
+                this.responseData.put("message", "get user info error");
                 this.responseData.put("status", UNKNOWN_ERROR);
             }
         }

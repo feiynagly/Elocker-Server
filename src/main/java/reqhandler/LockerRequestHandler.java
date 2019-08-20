@@ -80,7 +80,7 @@ public class LockerRequestHandler extends RequestHandler {
                 operationLog.setDescription("Add Locker " + serial);
                 logDao.addOperationLog(operationLog);
             } else if (status == -1) {
-                this.responseData.put("error", "Internal error");
+                this.responseData.put("message", "Internal error");
                 this.responseData.put("status", UNKNOWN_ERROR);
             }
         }
@@ -88,20 +88,20 @@ public class LockerRequestHandler extends RequestHandler {
 
     private boolean isLockerValid(Locker locker) {
         if (locker.getPhoneNum() == null || locker.getPhoneNum().equals("")) {
-            this.responseData.put("error", "Phone number can not be empty");
+            this.responseData.put("message", "Phone number can not be empty");
             this.responseData.put("status", INVALID_PHONE_NUMBER);
             return false;
         }
 
         if (locker.getSerial() == null || locker.getSerial().equals("")) {
-            this.responseData.put("error", "Serial number can not be empty");
+            this.responseData.put("message", "Serial number can not be empty");
             this.responseData.put("status", INVALID_SERIAL_NUMBER);
             return false;
         }
 
         /*如果产品库中没有该产品*/
         if (!manuInfoDao.existSerial(locker.getSerial())) {
-            this.responseData.put("error", "Serial number is invalid");
+            this.responseData.put("message", "Serial number is invalid");
             this.responseData.put("status", INVALID_SERIAL_NUMBER);
             return false;
         }
@@ -109,7 +109,7 @@ public class LockerRequestHandler extends RequestHandler {
         /*如果已经绑定到其它账户*/
         boolean b = lockerDao.existSerial(locker.getSerial());
         if (lockerDao.existSerial(locker.getSerial())) {
-            this.responseData.put("error", "The locker is bind to other account already");
+            this.responseData.put("message", "The locker is bind to other account already");
             this.responseData.put("status", DUPLICATE_SERIAL_NUMBER);
             return false;
         }
@@ -138,7 +138,7 @@ public class LockerRequestHandler extends RequestHandler {
                 operationLog.setDescription("Modify Locker Name");
                 logDao.addOperationLog(operationLog);
             } else {
-                this.responseData.put("error", "update locker failed");
+                this.responseData.put("message", "update locker failed");
                 this.responseData.put("status", UNKNOWN_ERROR);
             }
         }
@@ -193,11 +193,11 @@ public class LockerRequestHandler extends RequestHandler {
                 logDao.addOperationLog(operationLog);
 
             } else {
-                this.responseData.put("error", "Internal error");
+                this.responseData.put("message", "Internal error");
                 this.responseData.put("status", UNKNOWN_ERROR);
             }
         } else {
-            this.responseData.put("error", "the account to authorize to does not exist");
+            this.responseData.put("message", "the account to authorize to does not exist");
             this.responseData.put("status", INVALID_TO_ACCOUNT_VALUE);
         }
 

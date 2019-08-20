@@ -41,6 +41,7 @@ public class UserDao {
                     user.setCreateTime(rs.getString("createTime"));
                     user.setPrivilegeLevel(rs.getShort("privilegeLevel"));
                     user.setEmail(rs.getString("email"));
+                    user.setLastLoginIp(rs.getString("lastLoginIp"));
                     user.setLastLoginTime(rs.getString("lastLoginTime"));
                     user.setAppVersion(rs.getString("appVersion"));
                     user.setUserAgent(rs.getString("userAgent"));

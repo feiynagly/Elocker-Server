@@ -35,7 +35,7 @@ public class AuthorizationRequestHandler extends RequestHandler {
     private LogDao logDao;
 
     public void get() {
-        this.responseData.put("error", "Unknown error");
+        this.responseData.put("message", "Unknown error");
         this.responseData.put("status", UNKNOWN_ERROR);
 
         String toAccount = this.urlParam.get("toAccount");
@@ -46,7 +46,6 @@ public class AuthorizationRequestHandler extends RequestHandler {
         if (authorizationList != null) {
             this.responseData.put("status", SUCCESS);
             this.responseData.put("message", "get authorization list successfully");
-            this.responseData.remove("error");
         }
     }
 
@@ -56,21 +55,21 @@ public class AuthorizationRequestHandler extends RequestHandler {
         String serial = this.postData.has("serial") ? this.postData.getString("serial") : null;
         /*授权账户必须存在*/
         if (toAccount == null || toAccount.equals("") || !userDao.existUser(toAccount)) {
-            this.responseData.put("error", "The account to authorise to is valid");
+            this.responseData.put("message", "The account to authorise to is valid");
             this.responseData.put("status", INVALID_TO_ACCOUNT_VALUE);
             return;
         }
 
         /*授权的序列号必须存在*/
         if (serial == null || !manuInfoDao.existSerial(serial)) {
-            this.responseData.put("error", "invalid serial number");
+            this.responseData.put("message", "invalid serial number");
             this.responseData.put("status", INVALID_SERIAL_NUMBER);
             return;
         }
 
         /*禁止重复授权*/
         if (authorizationDao.existAuthorization(serial, this.phoneNum, toAccount)) {
-            this.responseData.put("error", "Duplicate authorization");
+            this.responseData.put("message", "Duplicate authorization");
             this.responseData.put("status", DUPLICATE_AUTHORIZATION);
             return;
         }
@@ -99,7 +98,7 @@ public class AuthorizationRequestHandler extends RequestHandler {
             operationLog.setDescription("Add a new authorization");
             logDao.addOperationLog(operationLog);
         } else {
-            this.responseData.put("error", "Add authorization failed");
+            this.responseData.put("message", "Add authorization failed");
             this.responseData.put("status", UNKNOWN_ERROR);
         }
     }

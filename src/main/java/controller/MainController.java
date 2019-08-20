@@ -358,13 +358,13 @@ public class MainController {
             methodData.get(handler).invoke(requestHandler);
         } catch (IllegalAccessException e) {
             logger.error("Failed to call method " + handler);
-            responseData.put("error", "Internal error");
+            responseData.put("message", "Internal error");
         } catch (InvocationTargetException e) {
             logger.error("Failed to call method " + handler + " ,No method " + handler + " in class " + handlerClassName + " or parameters are wrong");
-            responseData.put("error", "Internal error");
+            responseData.put("message", "Internal error");
         } catch (Exception e) {
             logger.error("Unknown error, module: " + module + " ,method: " + handler);
-            responseData.put("error", "Internal error");
+            responseData.put("message", "Internal error");
         }
 
         /*设置状态码*/

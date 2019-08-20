@@ -42,7 +42,7 @@ public class LoginRequestHandler extends RequestHandler {
         String password = this.postData.has("password") ? this.postData.getString("password") : null;
 
         if (phoneNum == null || password == null) {
-            this.responseData.put("error", "Username or password can not be empty");
+            this.responseData.put("message", "Username or password can not be empty");
             this.responseData.put("status", INCORRECT_USERNAME_OR_PASSWORD);
             return;
         }
@@ -53,7 +53,7 @@ public class LoginRequestHandler extends RequestHandler {
         /*多次输入密码失败时直接返回*/
         if (Integer.parseInt(jedis.get(phoneNum)) <= 0) {
             logger.info(phoneNum + " try login in for " + maxRetryTime + " times but failed");
-            this.responseData.put("error", "Login too frequently ,please login in after "
+            this.responseData.put("message", "Login too frequently ,please login in after "
                     + jedis.ttl(phoneNum) + " seconds");
             this.responseData.put("status", AUTHENTICATION_ERROR_COUNTER_EXCEED);
             jedis.close();
@@ -93,7 +93,7 @@ public class LoginRequestHandler extends RequestHandler {
 
             /*数据库读取失败*/
         } else if (enc_password == null) {
-            this.responseData.put("error", "Internal Error");
+            this.responseData.put("message", "Internal Error");
             this.responseData.put("status", UNKNOWN_ERROR);
         } else {
             jedis.decr(phoneNum);
