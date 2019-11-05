@@ -3,7 +3,7 @@ info:
   description: "Elocker 180.166.27.198"
   version: "1.0.0"
   title: "Elocker API"
-host: "180.166.27.198:443"
+host: "180.166.27.198"
 basePath: "/"
 tags:
   - name: "Locker"

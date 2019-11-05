@@ -9,6 +9,7 @@ public class Locker {
     private String hwType;
     /*开锁次数*/
     private int toggleTimes;
+    private String pak;
 
     public String getSerial() {
         return serial;
@@ -64,5 +65,13 @@ public class Locker {
 
     public void setToggleTimes(int toggleTimes) {
         this.toggleTimes = toggleTimes;
+    }
+
+    public String getPak() {
+        return pak;
+    }
+
+    public void setPak(String pak) {
+        this.pak = pak;
     }
 }
