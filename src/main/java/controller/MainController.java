@@ -20,7 +20,6 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URLDecoder;
 import java.util.HashMap;
@@ -336,13 +335,13 @@ public class MainController {
             requestHandler = (RequestHandler) applicationContext.getBean(handlerClassName);
             requestHandler.initParam(this.phoneNum, request, urlParam, postData, responseData, this.token);
         } catch (NoSuchBeanDefinitionException e) {
-            logger.error("No bean named:" + handlerClassName);
+            logger.error("No handler named :" + handlerClassName);
             responseData.put("error", "Internal Error");
             responseData.put("status", UNKNOWN_ERROR);
             response.setStatus(UNKNOWN_ERROR);
             return responseData;
         } catch (Exception e) {
-            logger.error("unknow error, can not find java bean " + handlerClassName);
+            logger.error("Can not find handler:  " + handlerClassName);
             responseData.put("error", "Unknown internal error");
             responseData.put("status", UNKNOWN_ERROR);
             response.setStatus(UNKNOWN_ERROR);
@@ -357,13 +356,10 @@ public class MainController {
         try {
             methodData.get(handler).invoke(requestHandler);
         } catch (IllegalAccessException e) {
-            logger.error("Failed to call method " + handler);
-            responseData.put("message", "Internal error");
-        } catch (InvocationTargetException e) {
-            logger.error("Failed to call method " + handler + " ,No method " + handler + " in class " + handlerClassName + " or parameters are wrong");
+            logger.error("Failed to Access method " + handler);
             responseData.put("message", "Internal error");
         } catch (Exception e) {
-            logger.error("Unknown error, module: " + module + " ,method: " + handler);
+            logger.error("Failed to call method " + handler + " ,No method " + handler + " in class " + handlerClassName + " or parameters are wrong");
             responseData.put("message", "Internal error");
         }
 

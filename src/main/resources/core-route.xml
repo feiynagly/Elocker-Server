@@ -14,6 +14,7 @@
         <entry key="authorization" value="AuthorizationRequestHandler"/>
         <entry key="log" value="LogRequestHandler" />
         <entry key="user" value="UserRequestHandler"/>
+        <entry key="update" value="UpdateRequestHandler" />
     </util:map>
 
     <!--URL路径中视图名/{viewname}和具体视图页面对应关系-->
@@ -40,6 +41,6 @@
         <value type="java.lang.String">user/add</value>
         <value type="java.lang.String">user/resetPassword</value>
         <value type="java.lang.String">user/getCode</value>
+        <value type="java.lang.String">update/check</value>
     </util:list>
-
 </beans>

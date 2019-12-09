@@ -7,6 +7,10 @@ public class Status {
     public static final short REQUEST_TOO_FREQUENTLY = 429;
     public static final short UNKNOWN_ERROR = 500;
 
+    /*是否需要更新*/
+    public static final short NEED_UPDATE = 210;
+    public static final short UN_NEED_UPDATE = 211;
+
     public static final short INCORRECT_USERNAME_OR_PASSWORD = 601;
     //连续多次认证错误
     public static final short AUTHENTICATION_ERROR_COUNTER_EXCEED = 602;
@@ -29,4 +33,7 @@ public class Status {
     /*多点登录*/
     public static final short MULTI_ENDPOINT_LOGIN = 614;
     public static final short INVALID_API_KEY = 615;
+    //客户端版本号错误
+    public static final short INVALID_USER_AGENT = 616;
+    public static final short INVALID_APP_VERSION = 617;
 }

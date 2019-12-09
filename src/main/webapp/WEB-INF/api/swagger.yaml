@@ -3,7 +3,7 @@ info:
   description: "Elocker 180.166.27.198"
   version: "1.0.0"
   title: "Elocker API"
-host: "180.166.27.198"
+host: "127.0.0.1:8080"
 basePath: "/"
 tags:
   - name: "Locker"
@@ -16,10 +16,29 @@ tags:
     description: "Operations about logs"
   - name: "Login"
     description: "Operations about login"
+  - name: "Update"
+    description: "Operations about update"
 schemes:
   - "https"
   - "http"
 paths:
+  /update/check:
+    get:
+      tags:
+        - "Update"
+      summary: "check update"
+      produces:
+        - "application/json"
+      parameters:
+        - $ref: '#/parameters/User-Agent'
+        - $ref: '#/parameters/App-Version'
+      responses:
+        210:
+          description: "Need update"
+        211:
+          description: "Do not need update"
+        500:
+          description: "Unknow error"
   /locker/get:
     get:
       tags:
@@ -596,8 +615,7 @@ parameters:
     required: true
     type: string
     description: "Api key"
-  User-Agent:  # <-- Arbitrary name for the definition that will be used to refer to it.
-    # Not necessarily the same as the parameter name.
+  User-Agent:
     in: header
     name: User-Agent
     required: true
